@@ -3,7 +3,45 @@ const Student = require('../models/Student');
 const Faculty = require('../models/Faculty');
 const Level = require('../models/Level');
 const { sendOTPEmail } = require('../utils/emailService');
+const fs = require('fs');
+const path = require('path');
+const sharp = require('sharp');
 require('dotenv').config();
+
+/* ---------- PASSWORD VALIDATION HELPER ---------- */
+function validatePasswordStrength(password) {
+  const errors = [];
+  
+  // Check length
+  if (password.length < 8) {
+    errors.push('Password must be at least 8 characters');
+  }
+  
+  // Check for uppercase
+  if (!/[A-Z]/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter (A-Z)');
+  }
+  
+  // Check for lowercase
+  if (!/[a-z]/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter (a-z)');
+  }
+  
+  // Check for numbers
+  if (!/\d/.test(password)) {
+    errors.push('Password must contain at least one number (0-9)');
+  }
+  
+  // Check for special characters
+  if (!/[@#$%&*!^()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    errors.push('Password must contain at least one special character (@, #, $, %, &, *, !, etc.)');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors: errors
+  };
+}
 
 // Signup - Generates OTP and sends to email
 exports.signup = async (req, res) => {
@@ -25,9 +63,13 @@ exports.signup = async (req, res) => {
       return res.status(400).json({ error: 'Passwords do not match' });
     }
 
-    // Password length
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    // Validate password strength
+    const passwordValidation = validatePasswordStrength(password);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({ 
+        error: 'Password does not meet complexity requirements',
+        requirements: passwordValidation.errors
+      });
     }
 
     // Validate faculty
@@ -194,7 +236,8 @@ exports.login = async (req, res) => {
         name: student.name,
         email: student.email,
         faculty: student.faculty,
-        level: student.level
+        level: student.level,
+        profile_photo: student.profile_photo
       }
     });
   } catch (error) {
@@ -214,5 +257,121 @@ exports.getProfile = async (req, res) => {
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Update profile photo
+exports.updateProfilePhoto = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Please select an image to upload' });
+    }
+
+    // Get current student
+    const student = await Student.findById(req.studentId);
+    if (!student) {
+      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Convert to WebP format
+    const originalPath = req.file.path;
+    const webpFilename = `${req.file.filename.split('.')[0]}-${Date.now()}.webp`;
+    const webpPath = path.join(req.file.destination, webpFilename);
+
+    await sharp(originalPath)
+        .webp({ quality: 80 })
+        .toFile(webpPath);
+    
+    // Delete the initially uploaded file after conversion
+    if (fs.existsSync(originalPath)) {
+        fs.unlinkSync(originalPath);
+    }
+
+    // Prepare database path
+    const finalDbPath = webpPath.replace(/\\/g, '/');
+
+    // Delete old profile image if it exists
+    if (student.profile_photo && fs.existsSync(student.profile_photo)) {
+        try {
+            fs.unlinkSync(student.profile_photo);
+        } catch (err) {
+            console.error('Failed to delete old profile photo:', err);
+        }
+    }
+
+    await Student.updateProfilePhoto(req.studentId, finalDbPath);
+
+    // Generate the full URL
+    const fullUrl = `${req.protocol}://${req.get('host')}/${finalDbPath}`;
+
+    res.json({
+      message: 'Profile photo updated successfully',
+      profile_image: fullUrl,
+      profile_photo: finalDbPath // kept for backwards compatibility if needed internally
+    });
+  } catch (error) {
+    console.error('Update profile photo error:', error);
+    // Cleanup if conversion failed
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ error: 'Failed to update profile photo' });
+  }
+};
+
+// Change password
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+    const studentId = req.studentId;
+
+    // Validation
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ error: 'New passwords do not match' });
+    }
+
+    if (currentPassword === newPassword) {
+      return res.status(400).json({ error: 'New password must be different from current password' });
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePasswordStrength(newPassword);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({ 
+        error: 'Password does not meet complexity requirements',
+        requirements: passwordValidation.errors
+      });
+    }
+
+    // Get current student
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    // Verify current password
+    const isPasswordValid = await Student.validatePassword(currentPassword, student.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    // Hash new password
+    const hashedPassword = await require('bcryptjs').hash(newPassword, 10);
+
+    // Update password
+    await Student.updatePassword(studentId, hashedPassword);
+
+    res.json({
+      message: 'Password changed successfully',
+      success: true
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Failed to change password' });
   }
 };
