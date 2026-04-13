@@ -33,7 +33,7 @@ class Student {
   // Find student by ID
   static async findById(id) {
     try {
-      const query = 'SELECT id, name, email, faculty, level, is_active, created_at, last_login FROM students WHERE id = ?';
+      const query = 'SELECT id, name, email, faculty, level, is_active, created_at, last_login, profile_photo FROM students WHERE id = ?';
       const [rows] = await pool.query(query, [id]);
       return rows[0] || null;
     } catch (error) {
@@ -63,7 +63,7 @@ class Student {
   // Get all students
   static async getAll() {
     try {
-      const query = 'SELECT id, name, email, faculty, level, is_active, created_at FROM students';
+      const query = 'SELECT id, name, email, faculty, level, is_active, created_at, profile_photo FROM students';
       const [rows] = await pool.query(query);
       return rows;
     } catch (error) {
@@ -82,12 +82,12 @@ class Student {
     }
   }
 
-  // Store OTP
+  // Store OTP (stored forever for account recovery)
   static async storeOTP(email, otp) {
     try {
       const query = `
         UPDATE students 
-        SET otp = ?, otp_expires_at = DATE_ADD(NOW(), INTERVAL 10 MINUTE)
+        SET otp = ?
         WHERE email = ?
       `;
       await pool.query(query, [otp, email]);
@@ -96,12 +96,12 @@ class Student {
     }
   }
 
-  // Verify OTP
+  // Verify OTP (no expiration - stored permanently)
   static async verifyOTP(email, otp) {
     try {
       const query = `
-        SELECT otp, otp_expires_at FROM students 
-        WHERE email = ? AND otp = ? AND otp_expires_at > NOW()
+        SELECT otp FROM students 
+        WHERE email = ? AND otp = ?
       `;
       const [rows] = await pool.query(query, [email, otp]);
       return rows[0] || null;
@@ -110,15 +110,35 @@ class Student {
     }
   }
 
-  // Mark email as verified and clear OTP
+  // Mark email as verified (keep OTP for future account recovery)
   static async markEmailAsVerified(email) {
     try {
       const query = `
         UPDATE students 
-        SET is_verified = true, otp = NULL, otp_expires_at = NULL
+        SET is_verified = true
         WHERE email = ?
       `;
       await pool.query(query, [email]);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Update profile photo
+  static async updateProfilePhoto(id, photoPath) {
+    try {
+      const query = 'UPDATE students SET profile_photo = ? WHERE id = ?';
+      await pool.query(query, [photoPath, id]);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Update password
+  static async updatePassword(id, hashedPassword) {
+    try {
+      const query = 'UPDATE students SET password = ? WHERE id = ?';
+      await pool.query(query, [hashedPassword, id]);
     } catch (error) {
       throw error;
     }
