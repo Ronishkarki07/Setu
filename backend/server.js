@@ -1,12 +1,23 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 const authRoutes = require('./routes/authRoutes');
 const ticketRoutes = require('./routes/ticketRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3307;
+
+// Ensure uploads directories exist
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+const ticketsUploadDir = path.join(__dirname, 'uploads', 'tickets');
+if (!fs.existsSync(ticketsUploadDir)) {
+  fs.mkdirSync(ticketsUploadDir, { recursive: true });
+}
 
 // Middleware
 app.use(express.json());
