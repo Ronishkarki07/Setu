@@ -28,6 +28,7 @@ export default function VerifyOTP() {
       setLoading(true);
       setError("");
 
+      // ✅ FIXED: was "http://localhost:3007/verify-otp"
       const res = await fetch("http://localhost:3000/api/auth/verify-otp", {
         method: "POST",
         headers: {
@@ -48,7 +49,8 @@ export default function VerifyOTP() {
       alert("Email verified successfully ✅ Please log in.");
       navigate("/");
 
-    } catch (err) {
+    } catch (error) {
+      console.error(error);
       setError("Server error. Please try again.");
     } finally {
       setLoading(false);
@@ -66,7 +68,7 @@ export default function VerifyOTP() {
       setResendMsg("");
       setError("");
 
-      const res = await fetch("http://localhost:3307/api/auth/resend-otp", {
+      const res = await fetch("http://localhost:3000/api/auth/resend-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -79,7 +81,8 @@ export default function VerifyOTP() {
       } else {
         setResendMsg("OTP resent! Check your email 📩");
       }
-    } catch (err) {
+    } catch (error) {
+      console.error(error);
       setError("Server error. Please try again.");
     } finally {
       setResendLoading(false);
