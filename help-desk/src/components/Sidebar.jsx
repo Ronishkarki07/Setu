@@ -1,84 +1,83 @@
+import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-export default function Sidebar() {
+export default function Sidebar({ onNewTicket }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path);
 
   return (
-    <aside className="w-56 bg-[#0d1b3e] flex flex-col h-screen">
-
-      {/* HEADER */}
-      <div className="flex items-center gap-3 px-5 py-6 border-b border-white/10">
-        <div className="w-10 h-10 rounded-xl bg-[#DC143C] text-white flex items-center justify-center font-bold">
+    <aside className="w-56 bg-white flex flex-col min-h-screen border-r border-gray-200 fixed left-0 top-0 z-50">
+      <div className="flex items-center gap-3 px-5 py-6 border-b border-gray-200">
+        <div className="w-10 h-10 rounded-lg bg-[#8B0000] text-white flex items-center justify-center font-bold text-sm">
           ST
         </div>
         <div>
-          <div className="text-white font-bold text-sm">Setu</div>
-          <div className="text-white/40 text-[9px] tracking-widest">
-            Biratnagar International College
-          </div>
+          <div className="text-gray-800 font-bold text-sm">Setu</div>
+          <div className="text-gray-400 text-[9px] tracking-widest">STUDENT PORTAL</div>
         </div>
       </div>
 
-      {/* NAV LINKS */}
-      <nav className="p-3 flex-1 space-y-1">
-        
-        {/* DASHBOARD */}
+      <nav className="p-3 flex-1">
         <div
           onClick={() => navigate("/dashboard")}
-          className={`px-3 py-2 cursor-pointer rounded-lg transition-all 
-            ${isActive("/dashboard") 
-              ? "bg-[#DC143C] text-white font-semibold shadow" 
-              : "text-white/70 hover:bg-white/10 hover:text-white"
-            }`}
+          className={`flex items-center gap-3 px-3 py-3 text-sm cursor-pointer rounded-lg mb-2 ${
+            isActive("/dashboard")
+              ? "text-[#8B0000] bg-red-50 border-l-4 border-[#8B0000]"
+              : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+          }`}
         >
-          ⊞ Dashboard
+          <span className="text-lg">📊</span> Dashboard
         </div>
 
-        {/* TICKETS */}
         <div
           onClick={() => navigate("/tickets")}
-          className={`px-3 py-2 cursor-pointer rounded-lg transition-all 
-            ${isActive("/tickets") && !location.search.includes("new")
-              ? "bg-[#DC143C] text-white font-semibold shadow" 
-              : "text-white/70 hover:bg-white/10 hover:text-white"
-            }`}
+          className={`flex items-center gap-3 px-3 py-3 text-sm cursor-pointer rounded-lg mb-2 ${
+            isActive("/tickets")
+              ? "text-[#8B0000] bg-red-50 border-l-4 border-[#8B0000]"
+              : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+          }`}
         >
-          🎫 Tickets
+          <span className="text-lg">🎫</span> Tickets
         </div>
 
-        {/* NEW TICKET BUTTON */}
         <button
-          onClick={() => navigate("/tickets?new=true")}
-          className="mt-4 w-full py-3 bg-[#DC143C] text-white rounded-xl hover:bg-[#b81233] transition"
+          onClick={() => (typeof onNewTicket === "function" ? onNewTicket() : navigate("/tickets?mode=submit"))}
+          className="mt-6 w-full py-3 rounded-lg bg-[#8B0000] text-white font-bold text-sm hover:bg-[#a50e2d]"
         >
           + New Ticket
         </button>
       </nav>
 
-      {/* SETTINGS + SIGN OUT */}
-      <div className="p-3 border-t border-white/10 space-y-3">
-
-        {/* SETTINGS */}
+      <div className="px-3 pb-3 border-t border-gray-200 pt-4">
         <div
           onClick={() => navigate("/settings")}
-          className="text-white/70 hover:text-white hover:bg-white/10 cursor-pointer rounded-lg px-3 py-2 transition flex items-center gap-2"
+          className={`px-3 py-2 text-sm cursor-pointer rounded-lg ${
+            isActive("/settings")
+              ? "text-[#8B0000] bg-red-50 border-l-4 border-[#8B0000]"
+              : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+          }`}
         >
-          ⚙️ Settings
+          ⚙ Settings
         </div>
 
-        {/* SIGN OUT */}
         <div
           onClick={() => {
             localStorage.removeItem("token");
+            localStorage.removeItem("student");
             navigate("/");
           }}
-          className="text-[#ff6b6b] hover:text-white hover:bg-[#ff6b6b]/20 rounded-lg px-3 py-2 cursor-pointer transition flex items-center gap-2"
+          className="px-3 py-2 text-gray-500 text-sm cursor-pointer hover:text-red-600 hover:bg-gray-50 rounded-lg"
         >
           → Sign Out
         </div>
+      </div>
+
+      <div className="px-3 pb-3 text-center">
+        <a href="#" className="text-gray-400 text-xs hover:text-gray-600">
+          Help Center
+        </a>
       </div>
     </aside>
   );
