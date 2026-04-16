@@ -44,7 +44,7 @@ function TopNav() {
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Notification icon (UI only for now) */}
+        {/* Notification icon (UI only for now might remove in future) */}
         <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-600">
           🔔
         </button>
