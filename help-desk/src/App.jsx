@@ -6,7 +6,7 @@ import VerifyOTP from "./pages/VerifyOTP";
 
 
 import Dashboard from "./pages/Dashboard";
-import Tickets from "./pages/Tickets"; // your tickets + submit page
+import Tickets from "./pages/Tickets"; //  tickets + submit page
 import Settings from "./pages/Settings";
 
 
@@ -20,7 +20,7 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
-/* ---------------- NOT FOUND ---------------- */
+/*  NOT FOUND  */
 function NotFound() {
   return (
     <h1 style={{ textAlign: "center", marginTop: "50px" }}>
@@ -29,7 +29,7 @@ function NotFound() {
   );
 }
 
-/* ---------------- APP ---------------- */
+/*  APP  */
 function App() {
   return (
     <BrowserRouter>

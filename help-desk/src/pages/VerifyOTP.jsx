@@ -10,30 +10,19 @@ export default function VerifyOTP() {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMsg, setResendMsg] = useState("");
 
-  // Get email from localStorage
   const email = localStorage.getItem("otpEmail");
 
   const handleVerify = async () => {
-    if (!otp) {
-      setError("Enter OTP");
-      return;
-    }
-
-    if (otp.length !== 6) {
-      setError("OTP must be 6 digits");
-      return;
-    }
+    if (!otp) return setError("Enter OTP");
+    if (otp.length !== 6) return setError("OTP must be 6 digits");
 
     try {
       setLoading(true);
       setError("");
 
-      // ✅ FIXED: was "http://localhost:3007/verify-otp"
       const res = await fetch("http://localhost:3000/api/auth/verify-otp", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp }),
       });
 
@@ -44,13 +33,11 @@ export default function VerifyOTP() {
         return;
       }
 
-      // ✅ FIXED: backend verifyOTP returns no token — redirect to login
       localStorage.removeItem("otpEmail");
       alert("Email verified successfully ✅ Please log in.");
       navigate("/");
-
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       setError("Server error. Please try again.");
     } finally {
       setLoading(false);
@@ -58,10 +45,7 @@ export default function VerifyOTP() {
   };
 
   const handleResend = async () => {
-    if (!email) {
-      setError("No email found. Please sign up again.");
-      return;
-    }
+    if (!email) return setError("No email found. Please sign up again.");
 
     try {
       setResendLoading(true);
@@ -81,8 +65,8 @@ export default function VerifyOTP() {
       } else {
         setResendMsg("OTP resent! Check your email 📩");
       }
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       setError("Server error. Please try again.");
     } finally {
       setResendLoading(false);
@@ -97,7 +81,9 @@ export default function VerifyOTP() {
 
         <p className="text-sm text-gray-500 text-center">
           Enter the 6-digit OTP sent to <br />
-          <span className="font-medium text-gray-700">{email || "your email"}</span>
+          <span className="font-medium text-gray-700">
+            {email || "your email"}
+          </span>
         </p>
 
         <input
@@ -106,7 +92,6 @@ export default function VerifyOTP() {
           value={otp}
           maxLength={6}
           onChange={(e) => {
-            // Only allow digits
             const val = e.target.value.replace(/\D/g, "");
             setOtp(val);
             setError("");

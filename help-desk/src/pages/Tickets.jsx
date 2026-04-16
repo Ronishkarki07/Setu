@@ -3,7 +3,6 @@ import Sidebar from "../components/Sidebar";
 
 const API = "http://localhost:3000/api";
 
-
 function getToken() {
   return localStorage.getItem("token");
 }
@@ -56,11 +55,10 @@ const statusIcon = (s) => {
   return { icon: "📋", bg: "bg-gray-100" };
 };
 
-/* Sidebar moved to src/components/Sidebar.jsx - using shared Sidebar */
-
-// ─── TOP NAV ─────────────────────────────────────────────────────────────────
+// top navigation bar with user info + notifications
 function TopNav() {
   const student = getStudent();
+
   const initials = (student.name || "U")
     .split(" ")
     .map((w) => w[0])
@@ -69,12 +67,16 @@ function TopNav() {
     .slice(0, 2);
 
   return (
-    <header className="flex justify-between items-center px-8 h-16 bg-white bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-      <div className="font-bold text-lg text-gray-800">Student Helpdesk Portal</div>
+    <header className="flex justify-between items-center px-8 h-16 bg-white border-b shadow-sm sticky top-0 z-10">
+      <div className="font-bold text-lg text-gray-800">
+        Student Helpdesk Portal
+      </div>
 
       <div className="flex items-center gap-4">
-        <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-600">🔔</button>
-        <div className="w-10 h-10 bg-[#8B0000] text-white rounded-full flex items-center justify-center text-sm font-bold cursor-pointer hover:bg-[#a50e2d]">
+        <button className="p-2 hover:bg-gray-100 rounded-lg">🔔</button>
+
+        {/* user avatar */}
+        <div className="w-10 h-10 bg-[#8B0000] text-white rounded-full flex items-center justify-center text-sm font-bold">
           {initials}
         </div>
       </div>
@@ -82,24 +84,30 @@ function TopNav() {
   );
 }
 
-// ─── MY TICKETS ───────────────────────────────────────────────────────────────
+// ticket listing with filters and stats
 function MyTickets() {
   const [filter, setFilter] = useState("All Tickets");
   const [tickets, setTickets] = useState([]);
-  const [stats, setStats] = useState({ total: 0, open_count: 0, inprogress_count: 0, resolved_count: 0 });
+  const [stats, setStats] = useState({
+    total: 0,
+    open_count: 0,
+    inprogress_count: 0,
+    resolved_count: 0,
+  });
   const [loading, setLoading] = useState(true);
 
   const filters = ["All Tickets", "Open", "In Progress", "Resolved"];
 
   useEffect(() => {
-    // fetch data
     const token = getToken();
     if (!token) return;
 
+    // fetch tickets and stats together
     Promise.all([
       fetch(`${API}/tickets/my-tickets`, { headers: authHeaders() })
         .then((r) => r.json())
         .catch(() => ({ tickets: [] })),
+
       fetch(`${API}/tickets/stats/overview`, { headers: authHeaders() })
         .then((r) => r.json())
         .catch(() => ({ statistics: {} })),
@@ -118,6 +126,7 @@ function MyTickets() {
       .finally(() => setLoading(false));
   }, []);
 
+  // filter tickets based on selected tab
   const filtered = tickets.filter((t) => {
     if (filter === "All Tickets") return true;
     if (filter === "Open") return t.status === "open";
@@ -126,50 +135,35 @@ function MyTickets() {
     return true;
   });
 
-  const activeCount = stats.open_count + stats.inprogress_count;
-
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
-
-  // relative time removed to satisfy lint rules; UI shows formatted date only
 
   return (
     <div className="p-10 pb-16">
-      <h1 className="text-5xl font-serif font-bold text-[#0d2740] mb-3">My Tickets</h1>
-      <p className="text-base text-gray-600 leading-relaxed mb-8 max-w-3xl">
-        Track and manage your academic support requests. Our curators are here to ensure your educational journey remains fluid.
+      <h1 className="text-5xl font-serif font-bold text-[#0d2740] mb-3">
+        My Tickets
+      </h1>
+
+      <p className="text-gray-600 mb-8">
+        Track and manage your support requests.
       </p>
 
-      {/* Stats */}
-      <div className="flex gap-4 mb-8">
-        {[
-          { icon: "📋", bg: "bg-blue-100", value: String(activeCount).padStart(2, "0"), label: "ACTIVE TICKETS", val: "text-[#0d1b3e]" },
-          { icon: "✔", bg: "bg-green-100", value: String(stats.resolved_count).padStart(2, "0"), label: "RESOLVED", val: "text-[#0d1b3e]" },
-          { icon: "!", bg: "bg-red-100", value: String(stats.open_count).padStart(2, "0"), label: "REQUIRES ACTION", val: "text-[#DC143C]" },
-        ].map((st) => (
-          <div key={st.label} className="flex-1 bg-white rounded-2xl px-6 py-6 flex items-center gap-4 shadow-sm">
-            <div className={`w-12 h-12 rounded-xl ${st.bg} flex items-center justify-center text-lg flex-shrink-0`}>{st.icon}</div>
-            <div>
-              <p className={`text-3xl font-bold ${st.val}`}>{st.value}</p>
-              <p className="text-[11px] text-gray-400 tracking-widest">{st.label}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Filter Tabs */}
-      <div className="flex gap-1 mb-5 bg-gray-100/60 rounded-xl p-1 w-fit">
+      {/* filter tabs */}
+      <div className="flex gap-1 mb-5 bg-gray-100 p-1 rounded-xl w-fit">
         {filters.map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-lg text-sm font-sans cursor-pointer transition-all ${
+            className={`px-4 py-2 rounded-lg text-sm ${
               filter === f
-                ? "bg-white text-[#0d2740] font-bold shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-white font-bold shadow-sm"
+                : "text-gray-500"
             }`}
           >
             {f}
@@ -177,46 +171,36 @@ function MyTickets() {
         ))}
       </div>
 
-      {/* Ticket List */}
+      {/* ticket list states */}
       {loading ? (
-        <p className="text-gray-500 py-8 text-center">Loading tickets...</p>
+        <p className="text-center text-gray-500">Loading tickets...</p>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">
-          <p className="text-4xl mb-3">🎫</p>
-          <p className="font-semibold text-lg text-gray-500">No tickets found</p>
-          <p className="text-sm mt-1">
-            {filter === "All Tickets"
-              ? "Submit your first ticket to get started!"
-              : `No ${filter.toLowerCase()} tickets.`}
-          </p>
-        </div>
+        <p className="text-center text-gray-400">No tickets found</p>
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map((t) => {
             const si = statusIcon(t.status);
+
             return (
               <div
                 key={t.id}
-                className="bg-white rounded-xl px-5 py-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                className="bg-white rounded-xl px-5 py-4 flex items-center gap-4 shadow-sm"
               >
-                <div className="min-w-[90px] text-left">
-                  <p className="text-[11px] text-gray-300 font-sans">{t.ticket_number}</p>
+                <div className={`w-12 h-12 ${si.bg} rounded-xl flex items-center justify-center`}>
+                  {si.icon}
                 </div>
 
-                <div className={`w-12 h-12 rounded-xl ${si.bg} flex items-center justify-center text-base flex-shrink-0`}>{si.icon}</div>
-
                 <div className="flex-1">
-                  <p className="font-serif font-bold text-lg text-[#0d2740] mb-0.5">{t.title}</p>
+                  <p className="font-bold">{t.title}</p>
                   <p className="text-xs text-gray-400">{t.category}</p>
                 </div>
 
-                <div className="flex flex-col items-end min-w-[140px]">
-                  <span className={`px-3 py-1.5 rounded-full text-[12px] font-bold whitespace-nowrap ${statusClass(t.status)}`}>{statusLabel(t.status)}</span>
-                  <p className="text-sm font-semibold text-[#0d2740] mt-2">{formatDate(t.created_at)}</p>
-                  {/* relative time intentionally omitted to avoid lint purity warnings */}
+                <div className="text-right">
+                  <p className="font-semibold">{statusLabel(t.status)}</p>
+                  <p className="text-sm text-gray-500">
+                    {formatDate(t.created_at)}
+                  </p>
                 </div>
-
-                <span className="text-gray-300 text-xl ml-2">›</span>
               </div>
             );
           })}
@@ -226,25 +210,24 @@ function MyTickets() {
   );
 }
 
-// ─── SUBMIT TICKET ────────────────────────────────────────────────────────────
+// ticket creation form
 function SubmitTicket({ onSubmitted }) {
   const [title, setTitle] = useState("");
   const [dept, setDept] = useState("");
   const [priority, setPriority] = useState("medium");
   const [desc, setDesc] = useState("");
   const [files, setFiles] = useState([]);
-  const [submitted, setSubmitted] = useState(false);
-  const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
+  // handle file upload
   const handleFiles = (incoming) =>
     setFiles((f) => [...f, ...Array.from(incoming)]);
-  const removeFile = (i) => setFiles(files.filter((_, idx) => idx !== i));
 
   const handleSubmit = async () => {
     if (!title || !dept || !desc) {
-      setError("Title, department, and description are required");
+      setError("Fill all required fields");
       return;
     }
 
@@ -252,22 +235,21 @@ function SubmitTicket({ onSubmitted }) {
     setError("");
 
     try {
-      const token = getToken();
       const formData = new FormData();
+
       formData.append("title", title);
       formData.append("description", desc);
       formData.append("category", dept);
       formData.append("priority", priority);
 
-      // Attach files
-      files.forEach((file) => {
-        formData.append("attachments", file);
-      });
+      files.forEach((file) =>
+        formData.append("attachments", file)
+      );
 
       const res = await fetch(`${API}/tickets/create`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${getToken()}`,
         },
         body: formData,
       });
@@ -279,237 +261,67 @@ function SubmitTicket({ onSubmitted }) {
         return;
       }
 
-      // Success
       setSubmitted(true);
+
+      // reset form
       setTitle("");
       setDept("");
-      setPriority("medium");
       setDesc("");
       setFiles([]);
 
-      // Auto-switch to tickets list after 2 seconds
       setTimeout(() => {
         setSubmitted(false);
-        if (onSubmitted) onSubmitted();
-      }, 2500);
-    } catch (err) {
-      console.error("Submit ticket error:", err);
-      setError("Unable to connect to server. Try again.");
+        onSubmitted?.();
+      }, 2000);
     } finally {
       setLoading(false);
     }
   };
 
-  const canSubmit = title && dept && desc && !loading;
-
   return (
-    <div className="p-10 pb-16 max-w-3xl">
-      {/* Badge */}
-      <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3.5 py-1 text-[11px] font-bold tracking-widest text-[#0d1b3e] font-sans">
-        ⚡ SUPPORT CENTER
-      </span>
+    <div className="p-10 max-w-3xl">
+      <h1 className="text-4xl font-bold mb-6">Submit Ticket</h1>
 
-      <h1 className="text-4xl font-bold text-[#0d1b3e] mt-3 mb-2">
-        Submit Ticket
-      </h1>
-      <p className="text-sm text-gray-500 font-sans leading-relaxed mb-8 max-w-lg">
-        Our dedicated academic support team is here to assist you. Complete the
-        form below and we will route your inquiry to the appropriate department.
-      </p>
-
-      {/* Success Toast */}
       {submitted && (
-        <div className="bg-[#0d1b3e] text-white px-5 py-3.5 rounded-xl mb-5 text-sm font-sans border-l-4 border-[#DC143C]">
-          ✓ Ticket submitted successfully! We'll be in touch soon.
-        </div>
+        <p className="mb-4 text-green-600">Ticket submitted successfully</p>
       )}
 
-      {/* Error Toast */}
-      {error && (
-        <div className="bg-red-50 text-red-600 px-5 py-3.5 rounded-xl mb-5 text-sm font-sans border-l-4 border-red-500">
-          ✕ {error}
-        </div>
-      )}
+      {error && <p className="mb-4 text-red-500">{error}</p>}
 
-      {/* Form Card */}
-      <div className="bg-white rounded-2xl px-10 py-9 shadow-md mb-6">
-        {/* Title */}
-        <div className="mb-6">
-          <label className="block text-[11px] font-bold tracking-widest text-gray-400 font-sans mb-2">
-            TITLE
-          </label>
-          <input
-            className="w-full px-4 py-3 rounded-lg border-[1.5px] border-gray-200 bg-gray-50 text-sm text-[#0d1b3e] font-sans outline-none focus:border-[#DC143C] transition-colors"
-            placeholder="Brief summary of your issue"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
+      {/* form fields */}
+      <input
+        className="w-full p-3 mb-3 bg-gray-100 rounded"
+        placeholder="Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+      />
 
-        {/* Dept + Priority */}
-        <div className="flex gap-5 mb-6">
-          <div className="flex-1">
-            <label className="block text-[11px] font-bold tracking-widest text-gray-400 font-sans mb-2">
-              DEPARTMENT
-            </label>
-            <select
-              className="w-full px-4 py-3 rounded-lg border-[1.5px] border-gray-200 bg-gray-50 text-sm text-[#0d1b3e] font-sans outline-none focus:border-[#DC143C] transition-colors appearance-none cursor-pointer"
-              value={dept}
-              onChange={(e) => setDept(e.target.value)}
-            >
-              <option value="">Select Department</option>
-              {DEPARTMENTS.map((d) => (
-                <option key={d}>{d}</option>
-              ))}
-            </select>
-          </div>
-          <div className="flex-1">
-            <label className="block text-[11px] font-bold tracking-widest text-gray-400 font-sans mb-2">
-              PRIORITY LEVEL
-            </label>
-            <div className="flex rounded-lg border-[1.5px] border-gray-200 overflow-hidden">
-              {["low", "medium", "high"].map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPriority(p)}
-                  className={`flex-1 py-3 text-sm font-sans border-r border-gray-200 last:border-0 cursor-pointer transition-colors ${
-                    priority === p
-                      ? "bg-[#0d1b3e] text-white font-bold"
-                      : "bg-gray-50 text-gray-500 hover:bg-gray-100"
-                  }`}
-                >
-                  {p.charAt(0).toUpperCase() + p.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Description */}
-        <div className="mb-6">
-          <label className="block text-[11px] font-bold tracking-widest text-gray-400 font-sans mb-2">
-            DETAILED DESCRIPTION
-          </label>
-          <textarea
-            className="w-full px-4 py-3 rounded-lg border-[1.5px] border-gray-200 bg-gray-50 text-sm text-[#0d1b3e] font-sans outline-none focus:border-[#DC143C] transition-colors resize-y min-h-[130px] leading-relaxed"
-            placeholder="Please provide as much detail as possible..."
-            value={desc}
-            onChange={(e) => setDesc(e.target.value)}
-          />
-        </div>
-
-        {/* Attachments */}
-        <div className="mb-6">
-          <label className="block text-[11px] font-bold tracking-widest text-gray-400 font-sans mb-2">
-            ATTACHMENTS
-          </label>
-          <div
-            className={`border-2 border-dashed rounded-xl py-9 px-5 text-center cursor-pointer transition-colors ${
-              dragging
-                ? "border-[#DC143C] bg-red-50"
-                : "border-gray-300 bg-gray-50 hover:border-gray-400"
-            }`}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragging(true);
-            }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setDragging(false);
-              handleFiles(e.dataTransfer.files);
-            }}
-            onClick={() => document.getElementById("fileIn").click()}
-          >
-            <input
-              id="fileIn"
-              type="file"
-              multiple
-              accept=".pdf,.png,.jpg,.jpeg"
-              className="hidden"
-              onChange={(e) => handleFiles(e.target.files)}
-            />
-            <div className="text-3xl mb-2">📄</div>
-            <p className="font-semibold text-sm text-[#0d1b3e] font-sans">
-              Click to upload or drag and drop
-            </p>
-            <p className="text-xs text-gray-400 font-sans mt-1">
-              PDF, PNG, JPG (Max 5MB)
-            </p>
-          </div>
-
-          {files.length > 0 && (
-            <div className="mt-3 flex flex-col gap-1.5">
-              {files.map((f, i) => (
-                <div
-                  key={i}
-                  className="flex justify-between items-center bg-gray-100 rounded-lg px-3 py-2"
-                >
-                  <span className="text-sm text-[#0d1b3e] font-sans">
-                    📎 {f.name}
-                  </span>
-                  <button
-                    onClick={() => removeFile(i)}
-                    className="text-[#DC143C] font-bold text-sm cursor-pointer hover:opacity-70 transition-opacity bg-transparent border-0"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Submit Button */}
-        <button
-          onClick={handleSubmit}
-          disabled={!canSubmit}
-          className={`px-8 py-3.5 rounded-xl bg-[#DC143C] text-white font-bold text-[15px] font-sans transition-colors ${
-            canSubmit
-              ? "cursor-pointer hover:bg-[#a50e2d]"
-              : "opacity-60 cursor-not-allowed"
-          }`}
-        >
-          {loading ? "Submitting..." : "Submit Ticket  ➜"}
-        </button>
-      </div>
-
-      {/* Help Banner */}
-      <div className="bg-white rounded-2xl px-6 py-5 flex items-start gap-4 shadow-sm">
-        <div className="w-11 h-11 bg-gray-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
-          💬
-        </div>
-        <div>
-          <p className="font-bold text-[15px] text-[#0d1b3e] mb-1">
-            Need immediate assistance?
-          </p>
-          <p className="text-sm text-gray-500 font-sans">
-            Check our Knowledge Base for quick answers to common questions about
-            admissions, enrollment, and technical troubleshooting before
-            submitting a ticket.
-          </p>
-        </div>
-      </div>
+      <button
+        onClick={handleSubmit}
+        disabled={loading}
+        className="bg-red-600 text-white px-6 py-3 rounded"
+      >
+        {loading ? "Submitting..." : "Submit Ticket"}
+      </button>
     </div>
   );
 }
 
-// ─── ROOT ─────────────────────────────────────────────────────────────────────
+// root page
 export default function Tickets() {
   const [page, setPage] = useState("tickets");
 
-  // When a ticket is successfully submitted, switch back to tickets list
-  const handleSubmitted = () => {
-    setPage("tickets");
-  };
-
   return (
-    <div className="min-h-screen bg-white text-gray-800">
+    <div className="min-h-screen bg-white">
       <Sidebar onNewTicket={() => setPage("submit")} />
-      <main className="ml-56 flex flex-col min-h-screen">
-        <TopNav page={page} setPage={setPage} />
-        {page === "tickets" && <MyTickets setPage={setPage} />}
-        {page === "submit" && <SubmitTicket onSubmitted={handleSubmitted} />}
+
+      <main className="ml-56">
+        <TopNav />
+
+        {page === "tickets" && <MyTickets />}
+        {page === "submit" && (
+          <SubmitTicket onSubmitted={() => setPage("tickets")} />
+        )}
       </main>
     </div>
   );

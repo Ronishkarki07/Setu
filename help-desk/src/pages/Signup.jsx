@@ -3,35 +3,21 @@ import { useNavigate } from "react-router-dom";
 import Logo from "../images/footer-logo.svg";
 import Building from "../images/building.png";
 
-/* ---------- PASSWORD VALIDATION HELPER ---------- */
-function validatePasswordStrength(password) {
-  const checks = {
-    length: password.length >= 8,
-    uppercase: /[A-Z]/.test(password),
-    lowercase: /[a-z]/.test(password),
-    number: /\d/.test(password),
-    special: /[^\w\s]/.test(password),
-  };
-  
-  return {
-    checks,
-    isValid: Object.values(checks).every(check => check === true),
-    strength: Object.values(checks).filter(check => check === true).length
-  };
-}
-
 export default function Signup() {
   const navigate = useNavigate();
 
+  // refs for smooth Enter-key navigation between fields
   const emailRef = useRef();
   const facultyRef = useRef();
   const levelRef = useRef();
   const passwordRef = useRef();
   const confirmRef = useRef();
 
+  // toggles for password visibility
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // form state holds all input values
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -41,70 +27,92 @@ export default function Signup() {
     confirmPassword: "",
   });
 
+  // field-level validation errors
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(null);
 
-  // ✅ FIXED: returns error string instead of only setting state
-  // so we can collect errors synchronously before submit
+  // top-level form message (like empty form warning)
+  const [formError, setFormError] = useState("");
+
+  // loading state during API call
+  const [loading, setLoading] = useState(false);
+
+  // validation rules for each field
   const getError = (name, value, currentForm) => {
     if (name === "name") {
       if (!value) return "Full name is required";
       if (!/^[A-Za-z\s]+$/.test(value)) return "Name cannot contain numbers";
     }
+
     if (name === "email") {
       if (!value) return "Email is required";
-      if (!value.endsWith("@bicnepal.edu.np")) return "Use institutional email";
+      if (!value.endsWith("@bicnepal.edu.np"))
+        return "Use institutional email";
     }
+
     if (name === "faculty" && !value) return "Select faculty";
     if (name === "level" && !value) return "Select level";
+
     if (name === "password") {
       if (!value) return "Password required";
-      const validation = validatePasswordStrength(value);
-      if (!validation.isValid) {
-        return "Password must be 8+ chars with uppercase, lowercase, number, and special character";
-      }
+      if (value.length < 8) return "Minimum 8 characters";
+      if (!/[A-Z]/.test(value)) return "Must include uppercase letter";
+      if (!/[a-z]/.test(value)) return "Must include lowercase letter";
+      if (!/[0-9]/.test(value)) return "Must include a number";
+      if (!/[!@#$%^&*]/.test(value))
+        return "Must include special character";
     }
+
     if (name === "confirmPassword") {
       if (!value) return "Confirm password";
       const pwd = currentForm ? currentForm.password : form.password;
       if (value !== pwd) return "Passwords do not match";
     }
+
     return "";
   };
 
+  // live validation while typing
   const validate = (name, value) => {
     const error = getError(name, value);
     setErrors((prev) => ({ ...prev, [name]: error }));
   };
 
+  // update form state + validate in real time
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     setForm((prev) => ({ ...prev, [name]: value }));
     validate(name, value);
-    
-    // Update password strength when password changes
-    if (name === "password") {
-      setPasswordStrength(validatePasswordStrength(value));
-    }
+    setFormError(""); // clear top error once user starts typing
   };
 
+  // submit signup request
   const handleSignup = async (e) => {
     e.preventDefault();
 
-    // ✅ FIXED: collect all errors synchronously into a local object
+    // quick check if everything is empty
+    const isFormEmpty = Object.values(form).every((val) => !val);
+    if (isFormEmpty) {
+      setFormError("Please fill the form first");
+      return;
+    }
+
+    setFormError("");
+
+    // run full validation before sending request
     const newErrors = {};
     Object.keys(form).forEach((key) => {
       newErrors[key] = getError(key, form[key], form);
     });
+
     setErrors(newErrors);
 
-    // Stop if any errors exist
+    // stop if any validation fails
     if (Object.values(newErrors).some((e) => e)) return;
 
     setLoading(true);
-    try {
 
+    try {
       const res = await fetch("http://localhost:3000/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -120,8 +128,7 @@ export default function Signup() {
         alert("OTP sent 📩 Check your email.");
         navigate("/verify-otp");
       }
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
       alert("Server error. Try again later.");
     } finally {
       setLoading(false);
@@ -132,7 +139,7 @@ export default function Signup() {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
       <div className="w-full max-w-6xl bg-white rounded-xl shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
 
-        {/* LEFT SIDE */}
+        {/* left visual panel with branding */}
         <div
           className="relative text-white p-10 flex flex-col justify-between rounded-l-xl bg-cover bg-center"
           style={{ backgroundImage: `url(${Building})` }}
@@ -140,13 +147,16 @@ export default function Signup() {
           <div
             className="absolute inset-0 rounded-l-xl"
             style={{
-              background: "linear-gradient(135deg, rgba(128,0,0,0.75), rgba(15,42,74,0.75))",
+              background:
+                "linear-gradient(135deg, rgba(128,0,0,0.75), rgba(15,42,74,0.75))",
             }}
           />
 
           <div className="relative z-10 mb-6">
             <img src={Logo} alt="College Logo" className="w-20 h-20 mb-4" />
-            <h1 className="text-3xl font-bold mb-2">Biratnagar International College</h1>
+            <h1 className="text-3xl font-bold mb-2">
+              Biratnagar International College
+            </h1>
             <p className="text-blue-200 text-sm">
               Access the centralized nexus for student support.
             </p>
@@ -156,19 +166,28 @@ export default function Signup() {
             <div className="bg-white/20 p-3 rounded-lg">🔒</div>
             <div>
               <p className="font-semibold">Secure Access</p>
-              <p className="text-blue-200 text-sm">Institutional Single Sign-On Ready</p>
+              <p className="text-blue-200 text-sm">
+                Institutional Single Sign-On Ready
+              </p>
             </div>
           </div>
         </div>
 
-        {/* RIGHT SIDE */}
+        {/* right side signup form */}
         <div className="p-10">
           <h2 className="text-2xl font-semibold mb-2">Create Account</h2>
-          <p className="text-gray-500 mb-6">Enter your institutional details.</p>
+          <p className="text-gray-500 mb-6">
+            Enter your institutional details.
+          </p>
 
           <form onSubmit={handleSignup} className="space-y-4">
 
-            {/* NAME */}
+            {/* top-level form message */}
+            <p className="text-red-500 text-sm text-center min-h-[20px]">
+              {formError || ""}
+            </p>
+
+            {/* name input */}
             <div>
               <input
                 name="name"
@@ -176,13 +195,17 @@ export default function Signup() {
                 placeholder="Full Name"
                 value={form.name}
                 onChange={handleChange}
-                onKeyDown={(e) => e.key === "Enter" && emailRef.current.focus()}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && emailRef.current.focus()
+                }
                 className="w-full p-3 rounded-lg bg-gray-100 focus:outline-none"
               />
-              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+              <p className="text-red-500 text-xs mt-1 min-h-[16px]">
+                {errors.name || ""}
+              </p>
             </div>
 
-            {/* EMAIL */}
+            {/* email input */}
             <div>
               <input
                 ref={emailRef}
@@ -191,53 +214,65 @@ export default function Signup() {
                 placeholder="student@bicnepal.edu.np"
                 value={form.email}
                 onChange={handleChange}
-                onKeyDown={(e) => e.key === "Enter" && facultyRef.current.focus()}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && facultyRef.current.focus()
+                }
                 className="w-full p-3 rounded-lg bg-gray-100 focus:outline-none"
               />
-              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+              <p className="text-red-500 text-xs mt-1 min-h-[16px]">
+                {errors.email || ""}
+              </p>
             </div>
 
-              {/* FACULTY */}
-          <div>
-            <select
-              ref={facultyRef}
-              name="faculty"
-              value={form.faculty}
-              onChange={handleChange}
-              onKeyDown={(e) => e.key === "Enter" && levelRef.current.focus()}
-              className="w-full p-3 rounded-lg bg-gray-100 focus:outline-none"
-            >
-              <option value="">Select Course</option>
-              <option value="BSc Hons Computer Science">Computer Science</option>
-              <option value="BIBM">BIBM</option>
-              <option value="BSc(Hons) CyberSecurity">Cyber Security</option>
-              <option value="MBA">MBA</option>
-            </select>
-            {errors.faculty && <p className="text-red-500 text-xs mt-1">{errors.faculty}</p>}
-          </div>
+            {/* faculty selection */}
+            <div>
+              <select
+                ref={facultyRef}
+                name="faculty"
+                value={form.faculty}
+                onChange={handleChange}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && levelRef.current.focus()
+                }
+                className="w-full p-3 rounded-lg bg-gray-100 focus:outline-none"
+              >
+                <option value="">Select Faculty</option>
+                <option value="BSc Hons Computer Science">Computer Science</option>
+                <option value="BIBM">Business</option>
+                <option value="BSc(Hons) CyberSecurity">Cyber Security</option>
+                <option value="MBA">MBA</option>
+              </select>
+              <p className="text-red-500 text-xs mt-1 min-h-[16px]">
+                {errors.faculty || ""}
+              </p>
+            </div>
 
-          {/* LEVEL */}
-          <div>
-            <select
-              ref={levelRef}
-              name="level"
-              value={form.level}
-              onChange={handleChange}
-              onKeyDown={(e) => e.key === "Enter" && passwordRef.current.focus()}
-              className="w-full p-3 rounded-lg bg-gray-100 focus:outline-none"
-            >
-              <option value="">Select Level</option>
-              <option value="Level 4">Level 4 - First Semester</option>
-              <option value="Level 4">Level 4 - Second Semester</option>
-              <option value="Level 5">Level 5 - First Semester</option>
-              <option value="Level 5">Level 5 - Second Semester</option>
-              <option value="Level 6">Level 6 - First Semester</option>
-              <option value="Level 6">Level 6 - Second Semester</option>
-            </select>
-            {errors.level && <p className="text-red-500 text-xs mt-1">{errors.level}</p>}
-          </div>
+            {/* level selection */}
+            <div>
+              <select
+                ref={levelRef}
+                name="level"
+                value={form.level}
+                onChange={handleChange}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && passwordRef.current.focus()
+                }
+                className="w-full p-3 rounded-lg bg-gray-100 focus:outline-none"
+              >
+                <option value="">Select Level</option>
+                <option value="Level 4 - First Semester">Level 4 - First Semester</option>
+                <option value="Level 4 - Second Semester">Level 4 - Second Semester</option>
+                <option value="Level 5 - First Semester">Level 5 - First Semester</option>
+                <option value="Level 5 - Second Semester">Level 5 - Second Semester</option>
+                <option value="Level 6 - First Semester">Level 6 - First Semester</option>
+                <option value="Level 6 - Second Semester">Level 6 - Second Semester</option>
+              </select>
+              <p className="text-red-500 text-xs mt-1 min-h-[16px]">
+                {errors.level || ""}
+              </p>
+            </div>
 
-            {/* PASSWORD */}
+            {/* password field */}
             <div className="relative">
               <input
                 ref={passwordRef}
@@ -246,7 +281,9 @@ export default function Signup() {
                 placeholder="Password"
                 value={form.password}
                 onChange={handleChange}
-                onKeyDown={(e) => e.key === "Enter" && confirmRef.current.focus()}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && confirmRef.current.focus()
+                }
                 className="w-full p-3 rounded-lg bg-gray-100 focus:outline-none"
               />
               <button
@@ -256,58 +293,12 @@ export default function Signup() {
               >
                 {showPassword ? "Hide" : "Show"}
               </button>
-              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-              
-              {/* Password Strength Indicator */}
-              {form.password && passwordStrength && (
-                <div className="mt-2 p-2.5 bg-gray-50 rounded-lg border border-gray-200 text-xs space-y-1">
-                  <div className="flex justify-between items-center mb-1.5">
-                    <span className="font-medium text-gray-700">Password Strength:</span>
-                    <span className={`font-semibold ${
-                      passwordStrength.strength === 5 ? 'text-green-600' :
-                      passwordStrength.strength >= 3 ? 'text-yellow-600' :
-                      'text-red-600'
-                    }`}>
-                      {passwordStrength.strength}/5
-                    </span>
-                  </div>
-                  <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full transition-all ${
-                        passwordStrength.strength === 5 ? 'bg-green-500' :
-                        passwordStrength.strength >= 3 ? 'bg-yellow-500' :
-                        'bg-red-500'
-                      }`}
-                      style={{width: `${(passwordStrength.strength / 5) * 100}%`}}
-                    />
-                  </div>
-                  <div className="space-y-0.5 mt-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className={`${passwordStrength.checks.length ? 'text-green-600' : 'text-gray-400'}`}>✓</span>
-                      <span className={passwordStrength.checks.length ? 'text-gray-700' : 'text-gray-500'}>8+ characters</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className={`${passwordStrength.checks.uppercase ? 'text-green-600' : 'text-gray-400'}`}>✓</span>
-                      <span className={passwordStrength.checks.uppercase ? 'text-gray-700' : 'text-gray-500'}>Uppercase (A-Z)</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className={`${passwordStrength.checks.lowercase ? 'text-green-600' : 'text-gray-400'}`}>✓</span>
-                      <span className={passwordStrength.checks.lowercase ? 'text-gray-700' : 'text-gray-500'}>Lowercase (a-z)</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className={`${passwordStrength.checks.number ? 'text-green-600' : 'text-gray-400'}`}>✓</span>
-                      <span className={passwordStrength.checks.number ? 'text-gray-700' : 'text-gray-500'}>Number (0-9)</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className={`${passwordStrength.checks.special ? 'text-green-600' : 'text-gray-400'}`}>✓</span>
-                      <span className={passwordStrength.checks.special ? 'text-gray-700' : 'text-gray-500'}>Symbol (@, #, $, etc.)</span>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <p className="text-red-500 text-xs mt-1 min-h-[16px]">
+                {errors.password || ""}
+              </p>
             </div>
 
-            {/* CONFIRM PASSWORD */}
+            {/* confirm password */}
             <div className="relative">
               <input
                 ref={confirmRef}
@@ -321,18 +312,23 @@ export default function Signup() {
               <button
                 type="button"
                 className="absolute right-3 top-3 text-sm text-blue-600"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                onClick={() =>
+                  setShowConfirmPassword(!showConfirmPassword)
+                }
               >
                 {showConfirmPassword ? "Hide" : "Show"}
               </button>
-              {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
+              <p className="text-red-500 text-xs mt-1 min-h-[16px]">
+                {errors.confirmPassword || ""}
+              </p>
             </div>
 
-            {/* BUTTON */}
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-3 rounded-lg text-white ${loading ? "bg-gray-400" : "bg-blue-900 hover:bg-blue-800"} transition`}
+              className={`w-full py-3 rounded-lg text-white ${
+                loading ? "bg-gray-400" : "bg-blue-900 hover:bg-blue-800"
+              } transition`}
             >
               {loading ? "Creating..." : "Create Account →"}
             </button>
