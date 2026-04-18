@@ -20,7 +20,7 @@ export default function Login() {
   // Used to disable button + show loading state during API call
   const [loading, setLoading] = useState(false);
 
-  // Validation logic for each field (kept same style as signup)
+  // Validation logic for each field (kept same as signup)
   const getError = (name, value) => {
     if (name === "email") {
       if (!value) return "Email is required";
