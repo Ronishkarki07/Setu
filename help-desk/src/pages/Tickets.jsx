@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 
+// Base API URL for backend communication
 const API = "http://localhost:3000/api";
 
+// Retrieve authentication token from local storage
 function getToken() {
   return localStorage.getItem("token");
 }
 
+// Safely retrieve logged-in student data
 function getStudent() {
   try {
     return JSON.parse(localStorage.getItem("student") || "{}");
@@ -15,6 +18,7 @@ function getStudent() {
   }
 }
 
+// Standard headers for authenticated API requests
 function authHeaders() {
   return {
     "Content-Type": "application/json",
@@ -22,6 +26,7 @@ function authHeaders() {
   };
 }
 
+// Predefined departments for ticket categorization
 const DEPARTMENTS = [
   "Student Service",
   "Admission",
@@ -31,6 +36,7 @@ const DEPARTMENTS = [
   "Resource",
 ];
 
+// Converts backend status to UI styling
 const statusClass = (s) => {
   if (s === "open") return "bg-[#DC143C] text-white";
   if (s === "in_progress") return "bg-[#0d1b3e] text-white";
@@ -39,6 +45,7 @@ const statusClass = (s) => {
   return "";
 };
 
+// Converts backend status into readable labels
 const statusLabel = (s) => {
   if (s === "open") return "OPEN";
   if (s === "in_progress") return "IN PROGRESS";
@@ -47,6 +54,7 @@ const statusLabel = (s) => {
   return s?.toUpperCase() || "";
 };
 
+// Returns icon and background color for each status
 const statusIcon = (s) => {
   if (s === "open") return { icon: "✳", bg: "bg-red-100" };
   if (s === "in_progress") return { icon: "↻", bg: "bg-blue-100" };
@@ -55,10 +63,11 @@ const statusIcon = (s) => {
   return { icon: "📋", bg: "bg-gray-100" };
 };
 
-// top navigation bar with user info + notifications
+// Top navigation bar displaying system title and user avatar
 function TopNav() {
   const student = getStudent();
 
+  // Generate initials from student name
   const initials = (student.name || "U")
     .split(" ")
     .map((w) => w[0])
@@ -73,9 +82,10 @@ function TopNav() {
       </div>
 
       <div className="flex items-center gap-4">
+        {/* Notification icon (UI only) */}
         <button className="p-2 hover:bg-gray-100 rounded-lg">🔔</button>
 
-        {/* user avatar */}
+        {/* User avatar with initials */}
         <div className="w-10 h-10 bg-[#8B0000] text-white rounded-full flex items-center justify-center text-sm font-bold">
           {initials}
         </div>
@@ -84,7 +94,7 @@ function TopNav() {
   );
 }
 
-// ticket listing with filters and stats
+// Component for displaying and filtering tickets
 function MyTickets() {
   const [filter, setFilter] = useState("All Tickets");
   const [tickets, setTickets] = useState([]);
@@ -102,7 +112,7 @@ function MyTickets() {
     const token = getToken();
     if (!token) return;
 
-    // fetch tickets and stats together
+    // Fetch tickets and statistics from backend API
     Promise.all([
       fetch(`${API}/tickets/my-tickets`, { headers: authHeaders() })
         .then((r) => r.json())
@@ -126,7 +136,7 @@ function MyTickets() {
       .finally(() => setLoading(false));
   }, []);
 
-  // filter tickets based on selected tab
+  // Filter tickets based on selected category
   const filtered = tickets.filter((t) => {
     if (filter === "All Tickets") return true;
     if (filter === "Open") return t.status === "open";
@@ -135,6 +145,7 @@ function MyTickets() {
     return true;
   });
 
+  // Format date for display
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
     return new Date(dateStr).toLocaleDateString("en-US", {
@@ -154,7 +165,7 @@ function MyTickets() {
         Track and manage your support requests.
       </p>
 
-      {/* filter tabs */}
+      {/* Filter tabs for ticket status */}
       <div className="flex gap-1 mb-5 bg-gray-100 p-1 rounded-xl w-fit">
         {filters.map((f) => (
           <button
@@ -171,7 +182,7 @@ function MyTickets() {
         ))}
       </div>
 
-      {/* ticket list states */}
+      {/* Ticket display logic */}
       {loading ? (
         <p className="text-center text-gray-500">Loading tickets...</p>
       ) : filtered.length === 0 ? (
@@ -186,15 +197,18 @@ function MyTickets() {
                 key={t.id}
                 className="bg-white rounded-xl px-5 py-4 flex items-center gap-4 shadow-sm"
               >
+                {/* Status icon */}
                 <div className={`w-12 h-12 ${si.bg} rounded-xl flex items-center justify-center`}>
                   {si.icon}
                 </div>
 
+                {/* Ticket details */}
                 <div className="flex-1">
                   <p className="font-bold">{t.title}</p>
                   <p className="text-xs text-gray-400">{t.category}</p>
                 </div>
 
+                {/* Status and date */}
                 <div className="text-right">
                   <p className="font-semibold">{statusLabel(t.status)}</p>
                   <p className="text-sm text-gray-500">
@@ -210,7 +224,7 @@ function MyTickets() {
   );
 }
 
-// ticket creation form
+// Ticket submission form component
 function SubmitTicket({ onSubmitted }) {
   const [title, setTitle] = useState("");
   const [dept, setDept] = useState("");
@@ -221,10 +235,11 @@ function SubmitTicket({ onSubmitted }) {
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  // handle file upload
+  // Handle file attachments
   const handleFiles = (incoming) =>
     setFiles((f) => [...f, ...Array.from(incoming)]);
 
+  // Submit ticket to backend
   const handleSubmit = async () => {
     if (!title || !dept || !desc) {
       setError("Fill all required fields");
@@ -261,9 +276,10 @@ function SubmitTicket({ onSubmitted }) {
         return;
       }
 
+      // Show success message
       setSubmitted(true);
 
-      // reset form
+      // Reset form fields
       setTitle("");
       setDept("");
       setDesc("");
@@ -288,7 +304,7 @@ function SubmitTicket({ onSubmitted }) {
 
       {error && <p className="mb-4 text-red-500">{error}</p>}
 
-      {/* form fields */}
+      {/* Ticket title input */}
       <input
         className="w-full p-3 mb-3 bg-gray-100 rounded"
         placeholder="Title"
@@ -296,6 +312,7 @@ function SubmitTicket({ onSubmitted }) {
         onChange={(e) => setTitle(e.target.value)}
       />
 
+      {/* Submit button */}
       <button
         onClick={handleSubmit}
         disabled={loading}
@@ -307,17 +324,19 @@ function SubmitTicket({ onSubmitted }) {
   );
 }
 
-// root page
+// Main tickets page controlling navigation between views
 export default function Tickets() {
   const [page, setPage] = useState("tickets");
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Sidebar navigation */}
       <Sidebar onNewTicket={() => setPage("submit")} />
 
       <main className="ml-56">
         <TopNav />
 
+        {/* Conditional rendering of pages */}
         {page === "tickets" && <MyTickets />}
         {page === "submit" && (
           <SubmitTicket onSubmitted={() => setPage("tickets")} />
