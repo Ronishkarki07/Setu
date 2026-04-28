@@ -5,77 +5,46 @@ import Logo from "../images/footer-logo.svg";
 export default function Login() {
   const navigate = useNavigate();
 
-  // Controls password visibility toggle (show/hide)
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  // Stores form input values for email and password
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
-
-  // Stores validation errors for each field
-  const [errors, setErrors] = useState({});
-
-  // Used to disable button + show loading state during API call
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Validation logic for each field (kept same as signup)
-  const getError = (name, value) => {
-    if (name === "email") {
-      if (!value) return "Email is required";
-      if (!value.endsWith("@bicnepal.edu.np"))
-        return "Use institutional email";
-    }
+  const isValidEmail = (email) =>
+    email.toLowerCase().endsWith("@bicnepal.edu.np");
 
-    if (name === "password") {
-      if (!value) return "Password is required";
-    }
-
-    return "";
-  };
-
-  // Runs validation and updates error state per field
-  const validate = (name, value) => {
-    const error = getError(name, value);
-    setErrors((prev) => ({ ...prev, [name]: error }));
-  };
-
-  // Handles input updates and live validation
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setForm((prev) => ({ ...prev, [name]: value }));
-    validate(name, value);
-  };
-
-  // Main login handler (validation → API call → navigation)
   const handleLogin = async () => {
-    const newErrors = {};
+    const cleanEmail = email.trim();
+    const cleanPassword = password.trim();
 
-    // Run validation for all fields before submitting
-    Object.keys(form).forEach((key) => {
-      newErrors[key] = getError(key, form[key]);
-    });
+    if (!cleanEmail || !cleanPassword) {
+      setError("All fields are required");
+      return;
+    }
 
-    setErrors(newErrors);
-
-    // Stop login if any validation error exists
-    if (Object.values(newErrors).some((e) => e)) return;
+    if (!isValidEmail(cleanEmail)) {
+      setError("Use your institutional email");
+      return;
+    }
 
     try {
       setLoading(true);
+      setError("");
 
-      // Send login request to backend
       const res = await fetch("http://localhost:3000/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          email: cleanEmail,
+          password: cleanPassword,
+        }),
       });
 
-      // Safely parse response JSON
+      // 🔥 SAFE JSON PARSE
       let data;
       try {
         data = await res.json();
@@ -83,29 +52,33 @@ export default function Login() {
         throw new Error("Invalid server response");
       }
 
-      // Handle failed login cases
       if (!res.ok) {
-        // If OTP verification is required, redirect to OTP page
+        // OTP required
         if (data?.requiresOTPVerification) {
-          localStorage.setItem("otpEmail", form.email);
+          localStorage.setItem("otpEmail", cleanEmail);
           navigate("/verify-otp");
           return;
         }
 
-        // Otherwise show login error
-        setErrors({ password: data?.error || "Invalid email or password" });
+        // account disabled
+        if (data?.accountDisabled) {
+          setError("Your account is deactivated. Contact admin.");
+          return;
+        }
+
+        setError(data?.error || "Invalid email or password");
         return;
       }
 
-      // Store auth session details after successful login
+      // ✅ SUCCESS
       localStorage.setItem("token", data.token);
       localStorage.setItem("student", JSON.stringify(data.student));
 
-      // Redirect user to dashboard
       navigate("/dashboard");
+
     } catch (err) {
-      // Handle network/server failure
-      setErrors({ password: "Unable to connect to server" });
+      console.error("Login error:", err);
+      setError("Unable to connect to server. Try again.");
     } finally {
       setLoading(false);
     }
@@ -115,7 +88,7 @@ export default function Login() {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg overflow-hidden">
 
-        {/* Top header section with branding */}
+        {/* HEADER */}
         <div
           className="px-6 py-6 text-center"
           style={{
@@ -130,41 +103,34 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Login form section */}
+        {/* FORM */}
         <div className="px-10 py-8 space-y-5">
 
-          {/* Email input field */}
+          {/* EMAIL */}
           <div>
             <p className="text-xs font-semibold mb-1">Email</p>
             <input
-              name="email"
               type="email"
               placeholder="student@bicnepal.edu.np"
-              value={form.email}
-              onChange={handleChange}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleLogin()}
               className="w-full bg-gray-100 rounded-xl px-4 py-3 text-sm outline-none"
             />
-            <p className="text-red-500 text-xs mt-1 min-h-[16px]">
-              {errors.email || ""}
-            </p>
           </div>
 
-          {/* Password input with toggle visibility */}
+          {/* PASSWORD */}
           <div>
             <p className="text-xs font-semibold mb-1">Password</p>
             <div className="flex bg-gray-100 rounded-xl px-4 py-3">
               <input
-                name="password"
                 type={showPassword ? "text" : "password"}
+                value={password}
                 placeholder="••••••"
-                value={form.password}
-                onChange={handleChange}
+                onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                 className="flex-1 bg-transparent text-sm outline-none"
               />
-
-              {/* Toggle show/hide password */}
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
@@ -173,13 +139,14 @@ export default function Login() {
                 {showPassword ? "Hide" : "Show"}
               </button>
             </div>
-
-            <p className="text-red-500 text-xs mt-1 min-h-[16px]">
-              {errors.password || ""}
-            </p>
           </div>
 
-          {/* Submit button with loading state */}
+          {/* ERROR */}
+          {error && (
+            <p className="text-red-500 text-sm text-center">{error}</p>
+          )}
+
+          {/* BUTTON */}
           <button
             onClick={handleLogin}
             disabled={loading}
@@ -192,7 +159,7 @@ export default function Login() {
             {loading ? "Signing in..." : "Sign In →"}
           </button>
 
-          {/* Navigation to signup page */}
+          {/* SIGNUP */}
           <p className="text-center text-sm text-gray-500">
             Don’t have an account?{" "}
             <span

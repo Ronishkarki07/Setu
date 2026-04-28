@@ -1,15 +1,13 @@
 import { useState, useEffect } from "react";
-import Sidebar from "../components/Sidebar";
+import { useNavigate } from "react-router-dom";
 
-// Base API URL for backend communication
 const API = "http://localhost:3000/api";
 
-// Retrieve authentication token from local storage
+/* ── helpers ─────────────────────────────────────────────────────────────────── */
 function getToken() {
   return localStorage.getItem("token");
 }
 
-// Safely retrieve logged-in student data
 function getStudent() {
   try {
     return JSON.parse(localStorage.getItem("student") || "{}");
@@ -18,7 +16,6 @@ function getStudent() {
   }
 }
 
-// Standard headers for authenticated API requests
 function authHeaders() {
   return {
     "Content-Type": "application/json",
@@ -26,7 +23,6 @@ function authHeaders() {
   };
 }
 
-// Predefined departments for ticket categorization
 const DEPARTMENTS = [
   "Student Service",
   "Admission",
@@ -36,7 +32,6 @@ const DEPARTMENTS = [
   "Resource",
 ];
 
-// Converts backend status to UI styling
 const statusClass = (s) => {
   if (s === "open") return "bg-[#DC143C] text-white";
   if (s === "in_progress") return "bg-[#0d1b3e] text-white";
@@ -45,7 +40,6 @@ const statusClass = (s) => {
   return "";
 };
 
-// Converts backend status into readable labels
 const statusLabel = (s) => {
   if (s === "open") return "OPEN";
   if (s === "in_progress") return "IN PROGRESS";
@@ -54,7 +48,6 @@ const statusLabel = (s) => {
   return s?.toUpperCase() || "";
 };
 
-// Returns icon and background color for each status
 const statusIcon = (s) => {
   if (s === "open") return { icon: "✳", bg: "bg-red-100" };
   if (s === "in_progress") return { icon: "↻", bg: "bg-blue-100" };
@@ -63,11 +56,78 @@ const statusIcon = (s) => {
   return { icon: "📋", bg: "bg-gray-100" };
 };
 
-// Top navigation bar displaying system title and user avatar
-function TopNav() {
-  const student = getStudent();
+// ─── SIDEBAR ─────────────────────────────────────────────────────────────────
+function Sidebar({ page, setPage }) {
+  const navigate = useNavigate();
 
-  // Generate initials from student name
+  const handleSignOut = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("student");
+    navigate("/");
+  };
+
+  return (
+    <aside className="w-56 bg-[#0d1b3e] flex flex-col min-h-screen flex-shrink-0">
+      <div className="flex items-center gap-3 px-5 py-6 border-b border-white/10">
+        <div className="w-10 h-10 rounded-xl bg-[#DC143C] text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+          AN
+        </div>
+        <div>
+          <div className="text-white font-bold text-sm leading-tight">
+            Setu
+          </div>
+          <div className="text-white/40 text-[9px] tracking-widest mt-0.5">
+            ACADEMIC AUTHORITY
+          </div>
+        </div>
+      </div>
+
+      <nav className="p-3 flex-1">
+        <div
+          onClick={() => navigate("/dashboard")}
+          className="flex items-center gap-2 px-4 py-3 rounded-xl text-white/60 text-sm cursor-pointer mb-1 hover:text-white transition-colors"
+        >
+          <span className="w-5 text-center">⊞</span> Dashboard
+        </div>
+        <div
+          onClick={() => setPage("tickets")}
+          className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm cursor-pointer mb-1 transition-colors ${
+            page === "tickets"
+              ? "bg-[#7a3f5a] text-white border-l-[4px] border-[#DC143C]"
+              : "text-white/60 hover:text-white"
+          }`}
+        >
+          <span className="w-5 text-center">🎫</span> My Tickets
+        </div>
+        <button
+          onClick={() => setPage("submit")}
+          className="mt-4 w-full py-3 rounded-xl bg-[#DC143C] text-white font-bold text-sm cursor-pointer hover:bg-[#a50e2d]"
+        >
+          + New Ticket
+        </button>
+      </nav>
+
+      <div className="px-3 pb-3 border-t border-white/10 pt-4">
+        <div 
+          onClick={() => navigate("/settings")}
+          className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-white/60 text-sm cursor-pointer hover:text-white/90 transition-colors"
+        >
+          ⚙ Settings
+        </div>
+        <div
+          onClick={handleSignOut}
+          className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-[#DC143C] text-sm cursor-pointer hover:opacity-80 transition-opacity"
+        >
+          → Sign Out
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+// ─── TOP NAV ─────────────────────────────────────────────────────────────────
+function TopNav({ page, setPage }) {
+  const student = getStudent();
   const initials = (student.name || "U")
     .split(" ")
     .map((w) => w[0])
@@ -76,17 +136,24 @@ function TopNav() {
     .slice(0, 2);
 
   return (
-    <header className="flex justify-between items-center px-8 h-16 bg-white border-b shadow-sm sticky top-0 z-10">
-      <div className="font-bold text-lg text-gray-800">
-        Student Helpdesk Portal
+    <header className="flex items-center justify-between px-8 h-14 bg-white border-b border-gray-100 sticky top-0 z-10">
+      <div className="flex gap-7">
+        <span className="text-gray-400 text-sm cursor-pointer hover:text-gray-600 transition-colors">
+          Dashboard
+        </span>
+        <span className="text-[#0d1b3e] font-bold text-sm cursor-pointer border-b-2 border-[#DC143C] pb-0.5">
+          Tickets
+        </span>
       </div>
-
-      <div className="flex items-center gap-4">
-        {/* Notification icon (UI only) */}
-        <button className="p-2 hover:bg-gray-100 rounded-lg">🔔</button>
-
-        {/* User avatar with initials */}
-        <div className="w-10 h-10 bg-[#8B0000] text-white rounded-full flex items-center justify-center text-sm font-bold">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-1.5 w-48">
+          <span className="text-gray-400 text-sm">🔍</span>
+          <input
+            className="bg-transparent outline-none text-sm text-[#0d1b3e] w-full placeholder-gray-400"
+            placeholder="Search ticekts"
+          />
+        </div>
+        <div className="w-9 h-9 rounded-full bg-[#0d1b3e] text-white flex items-center justify-center text-xs font-bold">
           {initials}
         </div>
       </div>
@@ -94,16 +161,11 @@ function TopNav() {
   );
 }
 
-// Component for displaying and filtering tickets
-function MyTickets() {
+// ─── MY TICKETS ───────────────────────────────────────────────────────────────
+function MyTickets({ setPage }) {
   const [filter, setFilter] = useState("All Tickets");
   const [tickets, setTickets] = useState([]);
-  const [stats, setStats] = useState({
-    total: 0,
-    open_count: 0,
-    inprogress_count: 0,
-    resolved_count: 0,
-  });
+  const [stats, setStats] = useState({ total: 0, open_count: 0, inprogress_count: 0, resolved_count: 0 });
   const [loading, setLoading] = useState(true);
 
   const filters = ["All Tickets", "Open", "In Progress", "Resolved"];
@@ -112,12 +174,10 @@ function MyTickets() {
     const token = getToken();
     if (!token) return;
 
-    // Fetch tickets and statistics from backend API
     Promise.all([
       fetch(`${API}/tickets/my-tickets`, { headers: authHeaders() })
         .then((r) => r.json())
         .catch(() => ({ tickets: [] })),
-
       fetch(`${API}/tickets/stats/overview`, { headers: authHeaders() })
         .then((r) => r.json())
         .catch(() => ({ statistics: {} })),
@@ -136,7 +196,6 @@ function MyTickets() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Filter tickets based on selected category
   const filtered = tickets.filter((t) => {
     if (filter === "All Tickets") return true;
     if (filter === "Open") return t.status === "open";
@@ -145,36 +204,64 @@ function MyTickets() {
     return true;
   });
 
-  // Format date for display
+  const activeCount = stats.open_count + stats.inprogress_count;
+
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+  };
+
+  const timeAgo = (dateStr) => {
+    if (!dateStr) return "";
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const hours = Math.floor(diff / 3600000);
+    if (hours < 1) return "JUST NOW";
+    if (hours < 24) return `${hours} HOUR${hours > 1 ? "S" : ""} AGO`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days} DAY${days > 1 ? "S" : ""} AGO`;
+    return "COMPLETED";
   };
 
   return (
     <div className="p-10 pb-16">
-      <h1 className="text-5xl font-serif font-bold text-[#0d2740] mb-3">
-        My Tickets
-      </h1>
-
-      <p className="text-gray-600 mb-8">
-        Track and manage your support requests.
+      <h1 className="text-4xl font-bold text-[#0d1b3e] mb-2">My Tickets</h1>
+      <p className="text-sm text-gray-500 leading-relaxed mb-8 max-w-2xl">
+        Track and manage your academic support requests. Our curators are here
+        to ensure your educational journey remains fluid.
       </p>
 
-      {/* Filter tabs for ticket status */}
-      <div className="flex gap-1 mb-5 bg-gray-100 p-1 rounded-xl w-fit">
+      {/* Stats */}
+      <div className="flex gap-4 mb-8">
+        {[
+          { icon: "📋", bg: "bg-blue-100", value: String(activeCount).padStart(2, "0"), label: "ACTIVE TICKETS", val: "text-[#0d1b3e]" },
+          { icon: "✔", bg: "bg-green-100", value: String(stats.resolved_count).padStart(2, "0"), label: "RESOLVED", val: "text-[#0d1b3e]" },
+          { icon: "!", bg: "bg-red-100", value: String(stats.open_count).padStart(2, "0"), label: "REQUIRES ACTION", val: "text-[#DC143C]" },
+        ].map((st) => (
+          <div key={st.label} className="flex-1 bg-white rounded-2xl px-6 py-4 flex items-center gap-4 shadow-sm">
+            <div className={`w-10 h-10 rounded-xl ${st.bg} flex items-center justify-center text-lg flex-shrink-0`}>
+              {st.icon}
+            </div>
+            <div>
+              <p className={`text-3xl font-bold ${st.val}`}>{st.value}</p>
+              <p className="text-[11px] text-gray-400 tracking-widest">
+                {st.label}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="flex gap-1 mb-5 bg-blue-100/60 rounded-xl p-1 w-fit">
         {filters.map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-lg text-sm ${
+            className={`px-4 py-2 rounded-lg text-sm cursor-pointer transition-all ${
               filter === f
-                ? "bg-white font-bold shadow-sm"
-                : "text-gray-500"
+                ? "bg-white text-[#0d1b3e] font-bold shadow-sm"
+                : "text-gray-400 hover:text-gray-600"
             }`}
           >
             {f}
@@ -182,39 +269,54 @@ function MyTickets() {
         ))}
       </div>
 
-      {/* Ticket display logic */}
+      {/* Ticket List */}
       {loading ? (
-        <p className="text-center text-gray-500">Loading tickets...</p>
+        <p className="text-gray-500 py-8 text-center">Loading tickets...</p>
       ) : filtered.length === 0 ? (
-        <p className="text-center text-gray-400">No tickets found</p>
+        <div className="text-center py-12 text-gray-400">
+          <p className="text-4xl mb-3">🎫</p>
+          <p className="font-semibold text-lg text-gray-500">No tickets found</p>
+          <p className="text-sm mt-1">
+            {filter === "All Tickets"
+              ? "Submit your first ticket to get started!"
+              : `No ${filter.toLowerCase()} tickets.`}
+          </p>
+        </div>
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map((t) => {
             const si = statusIcon(t.status);
-
             return (
               <div
                 key={t.id}
-                className="bg-white rounded-xl px-5 py-4 flex items-center gap-4 shadow-sm"
+                className="bg-white rounded-xl px-5 py-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
               >
-                {/* Status icon */}
-                <div className={`w-12 h-12 ${si.bg} rounded-xl flex items-center justify-center`}>
+                <p className="text-xs text-gray-400 min-w-[80px]">
+                  {t.ticket_number}
+                </p>
+                <div className={`w-10 h-10 rounded-xl ${si.bg} flex items-center justify-center text-base flex-shrink-0`}>
                   {si.icon}
                 </div>
-
-                {/* Ticket details */}
                 <div className="flex-1">
-                  <p className="font-bold">{t.title}</p>
-                  <p className="text-xs text-gray-400">{t.category}</p>
-                </div>
-
-                {/* Status and date */}
-                <div className="text-right">
-                  <p className="font-semibold">{statusLabel(t.status)}</p>
-                  <p className="text-sm text-gray-500">
-                    {formatDate(t.created_at)}
+                  <p className="font-bold text-sm text-[#0d1b3e] mb-0.5">
+                    {t.title}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {t.category}
                   </p>
                 </div>
+                <span className={`px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap ${statusClass(t.status)}`}>
+                  {statusLabel(t.status)}
+                </span>
+                <div className="text-right min-w-[110px]">
+                  <p className="text-sm font-semibold text-[#0d1b3e]">
+                    {formatDate(t.created_at)}
+                  </p>
+                  <p className="text-[11px] text-gray-400">
+                    {timeAgo(t.created_at)}
+                  </p>
+                </div>
+                <span className="text-gray-300 text-xl ml-2">›</span>
               </div>
             );
           })}
@@ -224,25 +326,25 @@ function MyTickets() {
   );
 }
 
-// Ticket submission form component
+// ─── SUBMIT TICKET ────────────────────────────────────────────────────────────
 function SubmitTicket({ onSubmitted }) {
   const [title, setTitle] = useState("");
   const [dept, setDept] = useState("");
   const [priority, setPriority] = useState("medium");
   const [desc, setDesc] = useState("");
   const [files, setFiles] = useState([]);
+  const [submitted, setSubmitted] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [submitted, setSubmitted] = useState(false);
 
-  // Handle file attachments
   const handleFiles = (incoming) =>
     setFiles((f) => [...f, ...Array.from(incoming)]);
+  const removeFile = (i) => setFiles(files.filter((_, idx) => idx !== i));
 
-  // Submit ticket to backend
   const handleSubmit = async () => {
     if (!title || !dept || !desc) {
-      setError("Fill all required fields");
+      setError("Title, department, and description are required");
       return;
     }
 
@@ -250,21 +352,22 @@ function SubmitTicket({ onSubmitted }) {
     setError("");
 
     try {
+      const token = getToken();
       const formData = new FormData();
-
       formData.append("title", title);
       formData.append("description", desc);
       formData.append("category", dept);
       formData.append("priority", priority);
 
-      files.forEach((file) =>
-        formData.append("attachments", file)
-      );
+      // Attach files
+      files.forEach((file) => {
+        formData.append("attachments", file);
+      });
 
       const res = await fetch(`${API}/tickets/create`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${getToken()}`,
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
@@ -276,71 +379,237 @@ function SubmitTicket({ onSubmitted }) {
         return;
       }
 
-      // Show success message
+      // Success
       setSubmitted(true);
-
-      // Reset form fields
       setTitle("");
       setDept("");
+      setPriority("medium");
       setDesc("");
       setFiles([]);
 
+      // Auto-switch to tickets list after 2 seconds
       setTimeout(() => {
         setSubmitted(false);
-        onSubmitted?.();
-      }, 2000);
+        if (onSubmitted) onSubmitted();
+      }, 2500);
+    } catch (err) {
+      console.error("Submit ticket error:", err);
+      setError("Unable to connect to server. Try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="p-10 max-w-3xl">
-      <h1 className="text-4xl font-bold mb-6">Submit Ticket</h1>
+  const canSubmit = title && dept && desc && !loading;
 
+  return (
+    <div className="p-10 pb-16 max-w-3xl">
+      {/* Badge */}
+      <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3.5 py-1 text-[11px] font-bold tracking-widest text-[#0d1b3e]">
+        ⚡ SUPPORT CENTER
+      </span>
+
+      <h1 className="text-4xl font-bold text-[#0d1b3e] mt-3 mb-2">
+        Submit Ticket
+      </h1>
+      <p className="text-sm text-gray-500 leading-relaxed mb-8 max-w-lg">
+        Our dedicated academic support team is here to assist you. Complete the
+        form below and we will route your inquiry to the appropriate department.
+      </p>
+
+      {/* Success Toast */}
       {submitted && (
-        <p className="mb-4 text-green-600">Ticket submitted successfully</p>
+        <div className="bg-[#0d1b3e] text-white px-5 py-3.5 rounded-xl mb-5 text-sm border-l-4 border-[#DC143C]">
+          ✓ Ticket submitted successfully! We'll be in touch soon.
+        </div>
       )}
 
-      {error && <p className="mb-4 text-red-500">{error}</p>}
+      {/* Error Toast */}
+      {error && (
+        <div className="bg-red-50 text-red-600 px-5 py-3.5 rounded-xl mb-5 text-sm border-l-4 border-red-500">
+          ✕ {error}
+        </div>
+      )}
 
-      {/* Ticket title input */}
-      <input
-        className="w-full p-3 mb-3 bg-gray-100 rounded"
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
+      {/* Form Card */}
+      <div className="bg-white rounded-2xl px-10 py-9 shadow-md mb-6">
+        {/* Title */}
+        <div className="mb-6">
+          <label className="block text-[11px] font-bold tracking-widest text-gray-400 mb-2">
+            TITLE
+          </label>
+          <input
+            className="w-full px-4 py-3 rounded-lg border-[1.5px] border-gray-200 bg-gray-50 text-sm text-[#0d1b3e] outline-none focus:border-[#DC143C] transition-colors"
+            placeholder="Brief summary of your issue"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
 
-      {/* Submit button */}
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        className="bg-red-600 text-white px-6 py-3 rounded"
-      >
-        {loading ? "Submitting..." : "Submit Ticket"}
-      </button>
+        {/* Dept + Priority */}
+        <div className="flex gap-5 mb-6">
+          <div className="flex-1">
+            <label className="block text-[11px] font-bold tracking-widest text-gray-400 mb-2">
+              DEPARTMENT
+            </label>
+            <select
+              className="w-full px-4 py-3 rounded-lg border-[1.5px] border-gray-200 bg-gray-50 text-sm text-[#0d1b3e] outline-none focus:border-[#DC143C] transition-colors appearance-none cursor-pointer"
+              value={dept}
+              onChange={(e) => setDept(e.target.value)}
+            >
+              <option value="">Select Department</option>
+              {DEPARTMENTS.map((d) => (
+                <option key={d}>{d}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex-1">
+            <label className="block text-[11px] font-bold tracking-widest text-gray-400 mb-2">
+              PRIORITY LEVEL
+            </label>
+            <div className="flex rounded-lg border-[1.5px] border-gray-200 overflow-hidden">
+              {["low", "medium", "high"].map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPriority(p)}
+                  className={`flex-1 py-3 text-sm border-r border-gray-200 last:border-0 cursor-pointer transition-colors ${
+                    priority === p
+                      ? "bg-[#0d1b3e] text-white font-bold"
+                      : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+                  }`}
+                >
+                  {p.charAt(0).toUpperCase() + p.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Description */}
+        <div className="mb-6">
+          <label className="block text-[11px] font-bold tracking-widest text-gray-400 mb-2">
+            DETAILED DESCRIPTION
+          </label>
+          <textarea
+            className="w-full px-4 py-3 rounded-lg border-[1.5px] border-gray-200 bg-gray-50 text-sm text-[#0d1b3e] outline-none focus:border-[#DC143C] transition-colors resize-y min-h-[130px] leading-relaxed"
+            placeholder="Please provide as much detail as possible..."
+            value={desc}
+            onChange={(e) => setDesc(e.target.value)}
+          />
+        </div>
+
+        {/* Attachments */}
+        <div className="mb-6">
+          <label className="block text-[11px] font-bold tracking-widest text-gray-400 mb-2">
+            ATTACHMENTS
+          </label>
+          <div
+            className={`border-2 border-dashed rounded-xl py-9 px-5 text-center cursor-pointer transition-colors ${
+              dragging
+                ? "border-[#DC143C] bg-red-50"
+                : "border-gray-300 bg-gray-50 hover:border-gray-400"
+            }`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragging(false);
+              handleFiles(e.dataTransfer.files);
+            }}
+            onClick={() => document.getElementById("fileIn").click()}
+          >
+            <input
+              id="fileIn"
+              type="file"
+              multiple
+              accept=".pdf,.png,.jpg,.jpeg"
+              className="hidden"
+              onChange={(e) => handleFiles(e.target.files)}
+            />
+            <div className="text-3xl mb-2">📄</div>
+            <p className="font-semibold text-sm text-[#0d1b3e] font-sans">
+              Click to upload or drag and drop
+            </p>
+            <p className="text-xs text-gray-400 font-sans mt-1">
+              PDF, PNG, JPG (Max 5MB)
+            </p>
+          </div>
+
+          {files.length > 0 && (
+            <div className="mt-3 flex flex-col gap-1.5">
+              {files.map((f, i) => (
+                <div
+                  key={i}
+                  className="flex justify-between items-center bg-gray-100 rounded-lg px-3 py-2"
+                >
+                  <span className="text-sm text-[#0d1b3e] font-sans">
+                    📎 {f.name}
+                  </span>
+                  <button
+                    onClick={() => removeFile(i)}
+                    className="text-[#DC143C] font-bold text-sm cursor-pointer hover:opacity-70 transition-opacity bg-transparent border-0"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Submit Button */}
+        <button
+          onClick={handleSubmit}
+          disabled={!canSubmit}
+          className={`px-8 py-3.5 rounded-xl bg-[#DC143C] text-white font-bold text-[15px] font-sans transition-colors ${
+            canSubmit
+              ? "cursor-pointer hover:bg-[#a50e2d]"
+              : "opacity-60 cursor-not-allowed"
+          }`}
+        >
+          {loading ? "Submitting..." : "Submit Ticket  ➜"}
+        </button>
+      </div>
+
+      {/* Help Banner */}
+      <div className="bg-white rounded-2xl px-6 py-5 flex items-start gap-4 shadow-sm">
+        <div className="w-11 h-11 bg-gray-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
+          💬
+        </div>
+        <div>
+          <p className="font-bold text-[15px] text-[#0d1b3e] mb-1">
+            Need immediate assistance?
+          </p>
+          <p className="text-sm text-gray-500 font-sans">
+            Check our Knowledge Base for quick answers to common questions about
+            admissions, enrollment, and technical troubleshooting before
+            submitting a ticket.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
 
-// Main tickets page controlling navigation between views
+// ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function Tickets() {
   const [page, setPage] = useState("tickets");
 
+  // When a ticket is successfully submitted, switch back to tickets list
+  const handleSubmitted = () => {
+    setPage("tickets");
+  };
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Sidebar navigation */}
-      <Sidebar onNewTicket={() => setPage("submit")} />
-
-      <main className="ml-56">
-        <TopNav />
-
-        {/* Conditional rendering of pages */}
-        {page === "tickets" && <MyTickets />}
-        {page === "submit" && (
-          <SubmitTicket onSubmitted={() => setPage("tickets")} />
-        )}
+    <div className="flex min-h-screen bg-[#f0f2f7] text-[#0d1b3e]">
+      <Sidebar page={page} setPage={setPage} />
+      <main className="flex-1 flex flex-col min-h-screen">
+        <TopNav page={page} setPage={setPage} />
+        {page === "tickets" && <MyTickets setPage={setPage} />}
+        {page === "submit" && <SubmitTicket onSubmitted={handleSubmitted} />}
       </main>
     </div>
   );
