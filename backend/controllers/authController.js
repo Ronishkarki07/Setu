@@ -8,7 +8,7 @@ const path = require('path');
 const sharp = require('sharp');
 require('dotenv').config();
 
-/* ---------- PASSWORD VALIDATION HELPER ---------- */
+/* PASSWORD VALIDATION HELPER  */
 function validatePasswordStrength(password) {
   const errors = [];
   
