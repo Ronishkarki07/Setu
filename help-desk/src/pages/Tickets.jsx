@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
+import { useLocation } from "react-router-dom";
 
 const API = "http://localhost:3000/api";
 
@@ -56,77 +57,125 @@ const statusIcon = (s) => {
   return { icon: "📋", bg: "bg-gray-100" };
 };
 
-// ─── SIDEBAR ─────────────────────────────────────────────────────────────────
-function Sidebar({ page, setPage }) {
-  const navigate = useNavigate();
+/* Sidebar moved to src/components/Sidebar.jsx - using shared Sidebar */
 
-  const handleSignOut = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("student");
-    navigate("/");
+// ─── EDIT TICKET MODAL ────────────────────────────────────────────────────────
+function EditTicketModal({ ticket, onClose, onSaved }) {
+  const [title, setTitle] = useState(ticket.title || "");
+  const [dept, setDept] = useState(ticket.category || "");
+  const [priority, setPriority] = useState(ticket.priority || "medium");
+  const [desc, setDesc] = useState(ticket.description || "");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSave = async () => {
+    if (!title || !dept || !desc) {
+      setError("Title, department, and description are required");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`${API}/tickets/${ticket.id}`, {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify({ title, category: dept, priority, description: desc }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to update ticket");
+        return;
+      }
+      onSaved();
+    } catch {
+      setError("Server error. Try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <aside className="w-56 bg-[#0d1b3e] flex flex-col min-h-screen flex-shrink-0">
-      <div className="flex items-center gap-3 px-5 py-6 border-b border-white/10">
-        <div className="w-10 h-10 rounded-xl bg-[#DC143C] text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
-          AN
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.45)" }}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 relative">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl leading-none">✕</button>
+
+        <h2 className="text-xl font-bold text-[#0d2740] mb-1">Edit Ticket</h2>
+        <p className="text-xs text-gray-400 mb-4">#{ticket.ticket_number}</p>
+
+        <p className="text-red-500 text-xs min-h-[16px] mb-3">{error || ""}</p>
+
+        <div className="mb-4">
+          <label className="block text-[11px] font-bold tracking-widest text-gray-400 mb-1.5">TITLE</label>
+          <input
+            className="w-full px-4 py-2.5 rounded-lg border-[1.5px] border-gray-200 bg-gray-50 text-sm text-[#0d1b3e] outline-none focus:border-[#DC143C] transition-colors"
+            value={title}
+            onChange={(e) => { setTitle(e.target.value); setError(""); }}
+          />
         </div>
-        <div>
-          <div className="text-white font-bold text-sm leading-tight">
-            Setu
+
+        <div className="mb-4">
+          <label className="block text-[11px] font-bold tracking-widest text-gray-400 mb-1.5">DEPARTMENT</label>
+          <select
+            className="w-full px-4 py-2.5 rounded-lg border-[1.5px] border-gray-200 bg-gray-50 text-sm text-[#0d1b3e] outline-none focus:border-[#DC143C] transition-colors appearance-none cursor-pointer"
+            value={dept}
+            onChange={(e) => { setDept(e.target.value); setError(""); }}
+          >
+            <option value="">Select Department</option>
+            {DEPARTMENTS.map((d) => <option key={d}>{d}</option>)}
+          </select>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-[11px] font-bold tracking-widest text-gray-400 mb-1.5">PRIORITY LEVEL</label>
+          <div className="flex rounded-lg border-[1.5px] border-gray-200 overflow-hidden">
+            {["low", "medium", "high"].map((p) => (
+              <button
+                key={p}
+                onClick={() => setPriority(p)}
+                className={`flex-1 py-2.5 text-sm border-r border-gray-200 last:border-0 cursor-pointer transition-colors ${
+                  priority === p ? "bg-[#0d1b3e] text-white font-bold" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+                }`}
+              >
+                {p.charAt(0).toUpperCase() + p.slice(1)}
+              </button>
+            ))}
           </div>
-          <div className="text-white/40 text-[9px] tracking-widest mt-0.5">
-            ACADEMIC AUTHORITY
-          </div>
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-[11px] font-bold tracking-widest text-gray-400 mb-1.5">DESCRIPTION</label>
+          <textarea
+            className="w-full px-4 py-2.5 rounded-lg border-[1.5px] border-gray-200 bg-gray-50 text-sm text-[#0d1b3e] outline-none focus:border-[#DC143C] transition-colors resize-y min-h-[100px] leading-relaxed"
+            value={desc}
+            onChange={(e) => { setDesc(e.target.value); setError(""); }}
+          />
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-500 hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className={`flex-1 py-2.5 rounded-xl text-white text-sm font-semibold transition-all ${
+              loading ? "bg-gray-400 cursor-not-allowed" : "hover:opacity-90 shadow-md"
+            }`}
+            style={loading ? {} : { background: "linear-gradient(135deg, #800000, #0f2a4a)" }}
+          >
+            {loading ? "Saving..." : "Save Changes"}
+          </button>
         </div>
       </div>
-
-      <nav className="p-3 flex-1">
-        <div
-          onClick={() => navigate("/dashboard")}
-          className="flex items-center gap-2 px-4 py-3 rounded-xl text-white/60 text-sm cursor-pointer mb-1 hover:text-white transition-colors"
-        >
-          <span className="w-5 text-center">⊞</span> Dashboard
-        </div>
-        <div
-          onClick={() => setPage("tickets")}
-          className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm cursor-pointer mb-1 transition-colors ${
-            page === "tickets"
-              ? "bg-[#7a3f5a] text-white border-l-[4px] border-[#DC143C]"
-              : "text-white/60 hover:text-white"
-          }`}
-        >
-          <span className="w-5 text-center">🎫</span> My Tickets
-        </div>
-        <button
-          onClick={() => setPage("submit")}
-          className="mt-4 w-full py-3 rounded-xl bg-[#DC143C] text-white font-bold text-sm cursor-pointer hover:bg-[#a50e2d]"
-        >
-          + New Ticket
-        </button>
-      </nav>
-
-      <div className="px-3 pb-3 border-t border-white/10 pt-4">
-        <div 
-          onClick={() => navigate("/settings")}
-          className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-white/60 text-sm cursor-pointer hover:text-white/90 transition-colors"
-        >
-          ⚙ Settings
-        </div>
-        <div
-          onClick={handleSignOut}
-          className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-[#DC143C] text-sm cursor-pointer hover:opacity-80 transition-opacity"
-        >
-          → Sign Out
-        </div>
-      </div>
-    </aside>
+    </div>
   );
 }
 
 // ─── TOP NAV ─────────────────────────────────────────────────────────────────
-function TopNav({ page, setPage }) {
+function TopNav() {
   const student = getStudent();
   const initials = (student.name || "U")
     .split(" ")
@@ -136,24 +185,12 @@ function TopNav({ page, setPage }) {
     .slice(0, 2);
 
   return (
-    <header className="flex items-center justify-between px-8 h-14 bg-white border-b border-gray-100 sticky top-0 z-10">
-      <div className="flex gap-7">
-        <span className="text-gray-400 text-sm cursor-pointer hover:text-gray-600 transition-colors">
-          Dashboard
-        </span>
-        <span className="text-[#0d1b3e] font-bold text-sm cursor-pointer border-b-2 border-[#DC143C] pb-0.5">
-          Tickets
-        </span>
-      </div>
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-1.5 w-48">
-          <span className="text-gray-400 text-sm">🔍</span>
-          <input
-            className="bg-transparent outline-none text-sm text-[#0d1b3e] w-full placeholder-gray-400"
-            placeholder="Search ticekts"
-          />
-        </div>
-        <div className="w-9 h-9 rounded-full bg-[#0d1b3e] text-white flex items-center justify-center text-xs font-bold">
+    <header className="flex justify-between items-center px-8 h-16 bg-white bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+      <div className="font-bold text-lg text-gray-800">Student Helpdesk Portal</div>
+
+      <div className="flex items-center gap-4">
+        <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-600">🔔</button>
+        <div className="w-10 h-10 bg-[#8B0000] text-white rounded-full flex items-center justify-center text-sm font-bold cursor-pointer hover:bg-[#a50e2d]">
           {initials}
         </div>
       </div>
@@ -162,18 +199,18 @@ function TopNav({ page, setPage }) {
 }
 
 // ─── MY TICKETS ───────────────────────────────────────────────────────────────
-function MyTickets({ setPage }) {
+function MyTickets() {
   const [filter, setFilter] = useState("All Tickets");
   const [tickets, setTickets] = useState([]);
   const [stats, setStats] = useState({ total: 0, open_count: 0, inprogress_count: 0, resolved_count: 0 });
   const [loading, setLoading] = useState(true);
+  const [editingTicket, setEditingTicket] = useState(null);
 
   const filters = ["All Tickets", "Open", "In Progress", "Resolved"];
 
-  useEffect(() => {
+  const fetchData = () => {
     const token = getToken();
     if (!token) return;
-
     Promise.all([
       fetch(`${API}/tickets/my-tickets`, { headers: authHeaders() })
         .then((r) => r.json())
@@ -184,7 +221,6 @@ function MyTickets({ setPage }) {
     ])
       .then(([ticketsData, statsData]) => {
         setTickets(ticketsData.tickets || []);
-
         const s = statsData.statistics || {};
         setStats({
           total: Number(s.total || 0),
@@ -194,6 +230,10 @@ function MyTickets({ setPage }) {
         });
       })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   const filtered = tickets.filter((t) => {
@@ -212,23 +252,22 @@ function MyTickets({ setPage }) {
     return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
   };
 
-  const timeAgo = (dateStr) => {
-    if (!dateStr) return "";
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const hours = Math.floor(diff / 3600000);
-    if (hours < 1) return "JUST NOW";
-    if (hours < 24) return `${hours} HOUR${hours > 1 ? "S" : ""} AGO`;
-    const days = Math.floor(hours / 24);
-    if (days < 7) return `${days} DAY${days > 1 ? "S" : ""} AGO`;
-    return "COMPLETED";
-  };
+  // relative time removed to satisfy lint rules; UI shows formatted date only
 
   return (
     <div className="p-10 pb-16">
-      <h1 className="text-4xl font-bold text-[#0d1b3e] mb-2">My Tickets</h1>
-      <p className="text-sm text-gray-500 leading-relaxed mb-8 max-w-2xl">
-        Track and manage your academic support requests. Our curators are here
-        to ensure your educational journey remains fluid.
+      {/* Edit Ticket Modal */}
+      {editingTicket && (
+        <EditTicketModal
+          ticket={editingTicket}
+          onClose={() => setEditingTicket(null)}
+          onSaved={() => { setEditingTicket(null); fetchData(); }}
+        />
+      )}
+
+      <h1 className="text-5xl font-serif font-bold text-[#0d2740] mb-3">My Tickets</h1>
+      <p className="text-base text-gray-600 leading-relaxed mb-8 max-w-3xl">
+        Track and manage your academic support requests. Our curators are here to ensure your educational journey remains fluid.
       </p>
 
       {/* Stats */}
@@ -238,30 +277,26 @@ function MyTickets({ setPage }) {
           { icon: "✔", bg: "bg-green-100", value: String(stats.resolved_count).padStart(2, "0"), label: "RESOLVED", val: "text-[#0d1b3e]" },
           { icon: "!", bg: "bg-red-100", value: String(stats.open_count).padStart(2, "0"), label: "REQUIRES ACTION", val: "text-[#DC143C]" },
         ].map((st) => (
-          <div key={st.label} className="flex-1 bg-white rounded-2xl px-6 py-4 flex items-center gap-4 shadow-sm">
-            <div className={`w-10 h-10 rounded-xl ${st.bg} flex items-center justify-center text-lg flex-shrink-0`}>
-              {st.icon}
-            </div>
+          <div key={st.label} className="flex-1 bg-white rounded-2xl px-6 py-6 flex items-center gap-4 shadow-sm">
+            <div className={`w-12 h-12 rounded-xl ${st.bg} flex items-center justify-center text-lg flex-shrink-0`}>{st.icon}</div>
             <div>
               <p className={`text-3xl font-bold ${st.val}`}>{st.value}</p>
-              <p className="text-[11px] text-gray-400 tracking-widest">
-                {st.label}
-              </p>
+              <p className="text-[11px] text-gray-400 tracking-widest">{st.label}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-1 mb-5 bg-blue-100/60 rounded-xl p-1 w-fit">
+      <div className="flex gap-1 mb-5 bg-gray-100/60 rounded-xl p-1 w-fit">
         {filters.map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-lg text-sm cursor-pointer transition-all ${
+            className={`px-4 py-2 rounded-lg text-sm font-sans cursor-pointer transition-all ${
               filter === f
-                ? "bg-white text-[#0d1b3e] font-bold shadow-sm"
-                : "text-gray-400 hover:text-gray-600"
+                ? "bg-white text-[#0d2740] font-bold shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
             }`}
           >
             {f}
@@ -289,34 +324,41 @@ function MyTickets({ setPage }) {
             return (
               <div
                 key={t.id}
-                className="bg-white rounded-xl px-5 py-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                className="bg-white rounded-xl px-5 py-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow"
               >
-                <p className="text-xs text-gray-400 min-w-[80px]">
-                  {t.ticket_number}
-                </p>
-                <div className={`w-10 h-10 rounded-xl ${si.bg} flex items-center justify-center text-base flex-shrink-0`}>
-                  {si.icon}
+                <div className="min-w-[90px] text-left">
+                  <p className="text-[11px] text-gray-300 font-sans">{t.ticket_number}</p>
                 </div>
+
+                <div className={`w-12 h-12 rounded-xl ${si.bg} flex items-center justify-center text-base flex-shrink-0`}>{si.icon}</div>
+
                 <div className="flex-1">
-                  <p className="font-bold text-sm text-[#0d1b3e] mb-0.5">
-                    {t.title}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {t.category}
-                  </p>
+                  <p className="font-serif font-bold text-lg text-[#0d2740] mb-0.5">{t.title}</p>
+                  <p className="text-xs text-gray-400">{t.category}</p>
                 </div>
-                <span className={`px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap ${statusClass(t.status)}`}>
-                  {statusLabel(t.status)}
-                </span>
-                <div className="text-right min-w-[110px]">
-                  <p className="text-sm font-semibold text-[#0d1b3e]">
-                    {formatDate(t.created_at)}
-                  </p>
-                  <p className="text-[11px] text-gray-400">
-                    {timeAgo(t.created_at)}
-                  </p>
+
+                <div className="flex flex-col items-end min-w-[180px]">
+                  <div className="flex items-center gap-2">
+                    <span className={`px-3 py-1.5 rounded-full text-[12px] font-bold whitespace-nowrap ${statusClass(t.status)}`}>{statusLabel(t.status)}</span>
+                    {t.status === "open" ? (
+                      <button
+                        onClick={() => setEditingTicket(t)}
+                        title="Edit ticket"
+                        className="px-3 py-1.5 rounded-full text-[12px] font-bold whitespace-nowrap bg-indigo-600 text-white hover:bg-indigo-700 transition-colors flex-shrink-0"
+                      >
+                        Edit
+                      </button>
+                    ) : (
+                      <span
+                        title="Cannot edit — ticket is no longer open"
+                        className="px-3 py-1.5 rounded-full text-[12px] font-bold whitespace-nowrap bg-gray-200 text-gray-400 flex-shrink-0 cursor-not-allowed"
+                      >
+                        Edit
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm font-semibold text-[#0d2740] mt-2">{formatDate(t.created_at)}</p>
                 </div>
-                <span className="text-gray-300 text-xl ml-2">›</span>
               </div>
             );
           })}
@@ -405,28 +447,28 @@ function SubmitTicket({ onSubmitted }) {
   return (
     <div className="p-10 pb-16 max-w-3xl">
       {/* Badge */}
-      <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3.5 py-1 text-[11px] font-bold tracking-widest text-[#0d1b3e]">
+      <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3.5 py-1 text-[11px] font-bold tracking-widest text-[#0d1b3e] font-sans">
         ⚡ SUPPORT CENTER
       </span>
 
       <h1 className="text-4xl font-bold text-[#0d1b3e] mt-3 mb-2">
         Submit Ticket
       </h1>
-      <p className="text-sm text-gray-500 leading-relaxed mb-8 max-w-lg">
+      <p className="text-sm text-gray-500 font-sans leading-relaxed mb-8 max-w-lg">
         Our dedicated academic support team is here to assist you. Complete the
         form below and we will route your inquiry to the appropriate department.
       </p>
 
       {/* Success Toast */}
       {submitted && (
-        <div className="bg-[#0d1b3e] text-white px-5 py-3.5 rounded-xl mb-5 text-sm border-l-4 border-[#DC143C]">
+        <div className="bg-[#0d1b3e] text-white px-5 py-3.5 rounded-xl mb-5 text-sm font-sans border-l-4 border-[#DC143C]">
           ✓ Ticket submitted successfully! We'll be in touch soon.
         </div>
       )}
 
       {/* Error Toast */}
       {error && (
-        <div className="bg-red-50 text-red-600 px-5 py-3.5 rounded-xl mb-5 text-sm border-l-4 border-red-500">
+        <div className="bg-red-50 text-red-600 px-5 py-3.5 rounded-xl mb-5 text-sm font-sans border-l-4 border-red-500">
           ✕ {error}
         </div>
       )}
@@ -435,11 +477,11 @@ function SubmitTicket({ onSubmitted }) {
       <div className="bg-white rounded-2xl px-10 py-9 shadow-md mb-6">
         {/* Title */}
         <div className="mb-6">
-          <label className="block text-[11px] font-bold tracking-widest text-gray-400 mb-2">
+          <label className="block text-[11px] font-bold tracking-widest text-gray-400 font-sans mb-2">
             TITLE
           </label>
           <input
-            className="w-full px-4 py-3 rounded-lg border-[1.5px] border-gray-200 bg-gray-50 text-sm text-[#0d1b3e] outline-none focus:border-[#DC143C] transition-colors"
+            className="w-full px-4 py-3 rounded-lg border-[1.5px] border-gray-200 bg-gray-50 text-sm text-[#0d1b3e] font-sans outline-none focus:border-[#DC143C] transition-colors"
             placeholder="Brief summary of your issue"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -449,11 +491,11 @@ function SubmitTicket({ onSubmitted }) {
         {/* Dept + Priority */}
         <div className="flex gap-5 mb-6">
           <div className="flex-1">
-            <label className="block text-[11px] font-bold tracking-widest text-gray-400 mb-2">
+            <label className="block text-[11px] font-bold tracking-widest text-gray-400 font-sans mb-2">
               DEPARTMENT
             </label>
             <select
-              className="w-full px-4 py-3 rounded-lg border-[1.5px] border-gray-200 bg-gray-50 text-sm text-[#0d1b3e] outline-none focus:border-[#DC143C] transition-colors appearance-none cursor-pointer"
+              className="w-full px-4 py-3 rounded-lg border-[1.5px] border-gray-200 bg-gray-50 text-sm text-[#0d1b3e] font-sans outline-none focus:border-[#DC143C] transition-colors appearance-none cursor-pointer"
               value={dept}
               onChange={(e) => setDept(e.target.value)}
             >
@@ -464,7 +506,7 @@ function SubmitTicket({ onSubmitted }) {
             </select>
           </div>
           <div className="flex-1">
-            <label className="block text-[11px] font-bold tracking-widest text-gray-400 mb-2">
+            <label className="block text-[11px] font-bold tracking-widest text-gray-400 font-sans mb-2">
               PRIORITY LEVEL
             </label>
             <div className="flex rounded-lg border-[1.5px] border-gray-200 overflow-hidden">
@@ -472,7 +514,7 @@ function SubmitTicket({ onSubmitted }) {
                 <button
                   key={p}
                   onClick={() => setPriority(p)}
-                  className={`flex-1 py-3 text-sm border-r border-gray-200 last:border-0 cursor-pointer transition-colors ${
+                  className={`flex-1 py-3 text-sm font-sans border-r border-gray-200 last:border-0 cursor-pointer transition-colors ${
                     priority === p
                       ? "bg-[#0d1b3e] text-white font-bold"
                       : "bg-gray-50 text-gray-500 hover:bg-gray-100"
@@ -487,11 +529,11 @@ function SubmitTicket({ onSubmitted }) {
 
         {/* Description */}
         <div className="mb-6">
-          <label className="block text-[11px] font-bold tracking-widest text-gray-400 mb-2">
+          <label className="block text-[11px] font-bold tracking-widest text-gray-400 font-sans mb-2">
             DETAILED DESCRIPTION
           </label>
           <textarea
-            className="w-full px-4 py-3 rounded-lg border-[1.5px] border-gray-200 bg-gray-50 text-sm text-[#0d1b3e] outline-none focus:border-[#DC143C] transition-colors resize-y min-h-[130px] leading-relaxed"
+            className="w-full px-4 py-3 rounded-lg border-[1.5px] border-gray-200 bg-gray-50 text-sm text-[#0d1b3e] font-sans outline-none focus:border-[#DC143C] transition-colors resize-y min-h-[130px] leading-relaxed"
             placeholder="Please provide as much detail as possible..."
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
@@ -500,7 +542,7 @@ function SubmitTicket({ onSubmitted }) {
 
         {/* Attachments */}
         <div className="mb-6">
-          <label className="block text-[11px] font-bold tracking-widest text-gray-400 mb-2">
+          <label className="block text-[11px] font-bold tracking-widest text-gray-400 font-sans mb-2">
             ATTACHMENTS
           </label>
           <div
@@ -597,16 +639,24 @@ function SubmitTicket({ onSubmitted }) {
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function Tickets() {
   const [page, setPage] = useState("tickets");
+  const location = useLocation();
 
-  // When a ticket is successfully submitted, switch back to tickets list
+   useEffect(() => {
+    if (location.state?.openNewTicket) {
+      setPage("submit");
+    } else {
+      setPage("tickets");
+    }
+  }, [location.key]);
+
   const handleSubmitted = () => {
     setPage("tickets");
   };
 
   return (
-    <div className="flex min-h-screen bg-[#f0f2f7] text-[#0d1b3e]">
-      <Sidebar page={page} setPage={setPage} />
-      <main className="flex-1 flex flex-col min-h-screen">
+    <div className="min-h-screen bg-white text-gray-800">
+      <Sidebar onNewTicket={() => setPage("submit")} />
+      <main className="ml-56 flex flex-col min-h-screen">
         <TopNav page={page} setPage={setPage} />
         {page === "tickets" && <MyTickets setPage={setPage} />}
         {page === "submit" && <SubmitTicket onSubmitted={handleSubmitted} />}

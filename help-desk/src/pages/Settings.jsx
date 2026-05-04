@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
 
 const API = "http://localhost:3000/api";
 
@@ -10,7 +11,7 @@ function validatePasswordStrength(password) {
     uppercase: /[A-Z]/.test(password),
     lowercase: /[a-z]/.test(password),
     number: /\d/.test(password),
-    special: /[@#$%&*!^()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+    special: /[^\w\s]/.test(password),
   };
   
   return {
@@ -40,70 +41,7 @@ function authHeaders() {
   };
 }
 
-/* ---------------- SIDEBAR ---------------- */
-function Sidebar() {
-  const navigate = useNavigate();
-
-  const handleSignOut = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("student");
-    navigate("/");
-  };
-
-  return (
-    <aside className="w-56 bg-[#0d1b3e] flex flex-col min-h-screen flex-shrink-0">
-      <div className="flex items-center gap-3 px-5 py-6 border-b border-white/10">
-        <div className="w-10 h-10 rounded-xl bg-[#DC143C] text-white flex items-center justify-center font-bold text-sm">
-          AN
-        </div>
-        <div>
-          <div className="text-white font-bold text-sm">Setu</div>
-          <div className="text-white/40 text-[9px] tracking-widest">
-            ACADEMIC AUTHORITY
-          </div>
-        </div>
-      </div>
-
-      <nav className="p-3 flex-1">
-        <div
-          onClick={() => navigate("/dashboard")}
-          className="flex items-center gap-2 px-3 py-2.5 text-white/60 text-sm cursor-pointer hover:text-white"
-        >
-          ⊞ Dashboard
-        </div>
-
-        <div
-          onClick={() => navigate("/tickets")}
-          className="flex items-center gap-2 px-3 py-2.5 text-white/60 text-sm cursor-pointer hover:text-white"
-        >
-          🎫 My Tickets
-        </div>
-
-        <button
-          onClick={() => navigate("/tickets")}
-          className="mt-4 w-full py-3 rounded-xl bg-[#DC143C] text-white font-bold text-sm hover:bg-[#a50e2d]"
-        >
-          + New Ticket
-        </button>
-      </nav>
-
-      <div className="px-3 pb-3 border-t border-white/10 pt-4">
-        <div
-          onClick={() => navigate("/settings")}
-          className="px-3 py-2 text-white text-sm cursor-pointer bg-[#DC143C]/20 border-l-[3px] border-[#DC143C]"
-        >
-          ⚙ Settings
-        </div>
-        <div
-          onClick={handleSignOut}
-          className="px-3 py-2 text-[#DC143C] text-sm cursor-pointer"
-        >
-          → Sign Out
-        </div>
-      </div>
-    </aside>
-  );
-}
+/* Sidebar moved to src/components/Sidebar.jsx - using shared Sidebar */
 
 /* ---------------- TOP NAV ---------------- */
 function TopNav() {
@@ -297,10 +235,10 @@ export default function Settings() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="h-screen bg-gray-50">
       <Sidebar />
 
-      <div className="flex flex-col flex-1">
+      <div className="ml-56 flex flex-col h-screen">
         <TopNav />
 
         <main className="flex-1 overflow-y-auto">
