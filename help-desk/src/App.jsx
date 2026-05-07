@@ -9,6 +9,12 @@ import Dashboard from "./pages/Dashboard";
 import Tickets from "./pages/Tickets"; // your tickets + submit page
 import Settings from "./pages/Settings";
 
+// --- Admin Pages ---
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminTickets from "./pages/admin/AdminTickets";
+import AdminProtectedRoute from "./pages/admin/AdminProtectedRoute";
+
 /* ---------------- PROTECTED ROUTE ---------------- */
 function ProtectedRoute({ children }) {
   const isAuth = localStorage.getItem("token"); // simple auth check
@@ -39,6 +45,25 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
+
+        {/* ADMIN ROUTES */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route 
+          path="/admin/dashboard" 
+          element={
+            <AdminProtectedRoute>
+              <AdminDashboard />
+            </AdminProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin/tickets" 
+          element={
+            <AdminProtectedRoute>
+              <AdminTickets />
+            </AdminProtectedRoute>
+          } 
+        />
 
         {/* PROTECTED ROUTES */}
         <Route

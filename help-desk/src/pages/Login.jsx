@@ -256,6 +256,16 @@ export default function Login() {
               Create one
             </span>
           </p>
+
+          {/* ADMIN PORTAL LINK */}
+          <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+            <button 
+              onClick={() => navigate("/admin/login")}
+              className="text-[10px] text-gray-300 uppercase tracking-widest hover:text-gray-500 transition-colors"
+            >
+              Staff Portal Access
+            </button>
+          </div>
         </div>
       </div>
     </div>
