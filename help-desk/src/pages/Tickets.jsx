@@ -31,6 +31,7 @@ const DEPARTMENTS = [
   "RTE",
   "IT Support",
   "Resource",
+  "PAT",
 ];
 
 const statusClass = (s) => {
