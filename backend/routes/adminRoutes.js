@@ -22,4 +22,17 @@ router.get('/verify', verifyAdminToken, adminController.verifySession);
 // Get admin profile
 router.get('/profile', verifyAdminToken, adminController.getProfile);
 
+// --- User Registry ---
+router.get('/users', verifyAdminToken, adminController.getAllUsers);
+router.patch('/users/:id/status', verifyAdminToken, adminController.updateUserStatus);
+router.get('/metadata', verifyAdminToken, adminController.getInstitutionalMetadata);
+
+// --- Departments ---
+const departmentController = require('../controllers/departmentController');
+router.get('/departments', verifyAdminToken, departmentController.getAllDepartments);
+router.post('/departments', verifyAdminToken, departmentController.createDepartment);
+router.put('/departments/:id', verifyAdminToken, departmentController.updateDepartment);
+router.delete('/departments/:id', verifyAdminToken, departmentController.deleteDepartment);
+router.post('/departments/invite', verifyAdminToken, departmentController.inviteHead);
+
 module.exports = router;

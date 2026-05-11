@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const pool = require('../config/database');
 require('dotenv').config();
 
 /*
@@ -10,7 +11,7 @@ require('dotenv').config();
  * ============================================================
  */
 const ADMIN_ID = 'admin_001';
-const ADMIN_EMAIL = 'admin@setu.edu.np';
+const ADMIN_EMAIL = 'admin@bicnepal.edu.np';
 const ADMIN_PASSWORD = 'Admin@Setu2026';
 const ADMIN_NAME = 'System Administrator';
 
@@ -230,5 +231,51 @@ exports.verifySession = async (req, res) => {
   } catch (error) {
     console.error('Admin verify session error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/*
+ * ============================================================
+ *  USER REGISTRY MANAGEMENT
+ * ============================================================
+ */
+
+// Get all users (Students & Staff)
+exports.getAllUsers = async (req, res) => {
+  try {
+    const query = 'SELECT id, name, email, faculty, level, role, is_active, created_at, last_login, profile_photo FROM students ORDER BY created_at DESC';
+    const [rows] = await pool.query(query);
+    res.json(rows);
+  } catch (error) {
+    console.error('Get all users error:', error);
+    res.status(500).json({ error: 'Failed to fetch user registry' });
+  }
+};
+
+// Toggle user activation status
+exports.updateUserStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { is_active } = req.body;
+
+    const query = 'UPDATE students SET is_active = ? WHERE id = ?';
+    await pool.query(query, [is_active, id]);
+
+    res.json({ message: `User account ${is_active ? 'activated' : 'deactivated'} successfully` });
+  } catch (error) {
+    console.error('Update user status error:', error);
+    res.status(500).json({ error: 'Failed to update account status' });
+  }
+};
+
+// Get institutional metadata (faculties & levels)
+exports.getInstitutionalMetadata = async (req, res) => {
+  try {
+    const [faculties] = await pool.query('SELECT * FROM faculties ORDER BY name');
+    const [levels] = await pool.query('SELECT * FROM levels ORDER BY id');
+    res.json({ faculties, levels });
+  } catch (error) {
+    console.error('Metadata error:', error);
+    res.status(500).json({ error: 'Failed to fetch institutional metadata' });
   }
 };
