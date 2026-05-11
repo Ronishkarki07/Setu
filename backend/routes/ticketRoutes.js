@@ -3,6 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const ticketController = require('../controllers/ticketController');
 const { verifyToken } = require('../middleware/auth');
+const { verifyAdminToken } = require('../middleware/adminAuth');
 
 const router = express.Router();
 
@@ -76,6 +77,9 @@ router.delete('/:id', verifyToken, ticketController.deleteTicket);
 router.get('/stats/overview', verifyToken, ticketController.getTicketStatistics);
 
 // Get all tickets (admin only)
-router.get('/', verifyToken, ticketController.getAllTickets);
+router.get('/', verifyAdminToken, ticketController.getAllTickets);
+
+// Manual ticket entry (admin only)
+router.post('/manual', verifyAdminToken, upload.array('attachments', 5), ticketController.createManualTicket);
 
 module.exports = router;

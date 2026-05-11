@@ -368,3 +368,54 @@ exports.getTicketStatistics = async (req, res) => {
     res.status(500).json({ error: 'Failed to retrieve statistics' });
   }
 };
+
+// Create ticket manually (Admin)
+exports.createManualTicket = async (req, res) => {
+  try {
+    const { studentEmail, title, description, category, priority } = req.body;
+
+    // Find student by email
+    const Student = require('../models/Student');
+    const student = await Student.findByEmail(studentEmail);
+    if (!student) {
+      // Clean up uploaded files if student not found
+      if (req.files) {
+        req.files.forEach(file => {
+          try { fs.unlinkSync(file.path); } catch (err) { console.error('Delete error:', err); }
+        });
+      }
+      return res.status(404).json({ error: 'Student with this email not found' });
+    }
+
+    // Prepare attachments
+    const attachments = req.files ? req.files.map(file => ({
+      path: file.path,
+      filename: file.originalname
+    })) : [];
+
+    const ticketData = {
+      studentId: student.id,
+      title,
+      description,
+      category,
+      priority: priority || 'medium',
+      attachments
+    };
+
+    const newTicket = await Ticket.create(ticketData);
+
+    res.status(201).json({
+      message: 'Manual ticket created successfully',
+      ticket: newTicket
+    });
+  } catch (error) {
+    console.error('Manual ticket creation error:', error);
+    // Clean up uploaded files
+    if (req.files) {
+      req.files.forEach(file => {
+        try { fs.unlinkSync(file.path); } catch (err) { console.error('Delete error:', err); }
+      });
+    }
+    res.status(500).json({ error: 'Failed to create manual ticket' });
+  }
+};
