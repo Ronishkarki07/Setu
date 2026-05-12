@@ -18,10 +18,37 @@ CREATE TABLE IF NOT EXISTS students (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   last_login TIMESTAMP NULL,
   profile_photo VARCHAR(255) NULL,
+  role ENUM('student', 'staff', 'department_head') DEFAULT 'student',
+  department VARCHAR(255) NULL,
   INDEX idx_email (email),
   INDEX idx_faculty (faculty),
   INDEX idx_level (level),
   CONSTRAINT email_validation CHECK (email LIKE '%@bicnepal.edu.np')
+);
+
+-- Departments Table
+CREATE TABLE IF NOT EXISTS departments (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) UNIQUE NOT NULL,
+  description TEXT,
+  head_id INT,
+  head_name VARCHAR(255),
+  head_email VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (head_id) REFERENCES students(id) ON DELETE SET NULL
+);
+
+-- Department Invitations Table
+CREATE TABLE IF NOT EXISTS department_invitations (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  email VARCHAR(255) NOT NULL,
+  department_name VARCHAR(100) NOT NULL,
+  token VARCHAR(255) UNIQUE NOT NULL,
+  status ENUM('pending', 'accepted', 'expired') DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  expires_at TIMESTAMP NOT NULL,
+  INDEX idx_token (token)
 );
 
 -- Tickets Table
@@ -60,12 +87,12 @@ CREATE TABLE IF NOT EXISTS ticket_attachments (
 CREATE TABLE IF NOT EXISTS ticket_comments (
   id INT PRIMARY KEY AUTO_INCREMENT,
   ticket_id INT NOT NULL,
-  student_id INT,
-  admin_id INT,
-  comment TEXT NOT NULL,
+  author_id INT NOT NULL,
+  author_name VARCHAR(255) NOT NULL,
+  author_role ENUM('student', 'department_head', 'admin') DEFAULT 'student',
+  message TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE,
-  FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE SET NULL,
   INDEX idx_ticket_id (ticket_id)
 );
 
