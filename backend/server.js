@@ -7,6 +7,7 @@ const authRoutes = require('./routes/authRoutes');
 const ticketRoutes = require('./routes/ticketRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const announcementRoutes = require('./routes/announcementRoutes');
+const deptRoutes = require('./routes/deptRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3307;
@@ -37,6 +38,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/announcements', announcementRoutes);
+app.use('/api/dept', deptRoutes);
 
 // Start server
 app.listen(PORT, () => {
