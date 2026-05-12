@@ -98,9 +98,16 @@ export default function Login() {
 
       {/* card */}
       <div
-        className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2"
+        className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2 relative"
         style={{ maxHeight: "calc(100vh - 2rem)" }}
       >
+        <button 
+          onClick={() => navigate('/')}
+          className="absolute top-4 left-4 z-50 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-md border border-white/30 text-white shadow-sm flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+          title="Back to Home"
+        >
+          ←
+        </button>
         {/* LEFT — branding panel */}
         <div
           className="relative hidden md:flex flex-col justify-between p-10 text-white bg-cover bg-center"

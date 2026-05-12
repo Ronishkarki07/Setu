@@ -190,9 +190,13 @@ function TopNav() {
       <div className="font-bold text-lg text-gray-800">Student Helpdesk Portal</div>
 
       <div className="flex items-center gap-4">
-        <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-600">🔔</button>
-        <div className="w-10 h-10 bg-[#8B0000] text-white rounded-full flex items-center justify-center text-sm font-bold cursor-pointer hover:bg-[#a50e2d]">
-          {initials}
+        <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-400">🔔</button>
+        <div className="w-10 h-10 bg-[#0d1b3e] text-white rounded-full flex items-center justify-center text-sm font-bold border border-gray-200 overflow-hidden shadow-sm transition-transform hover:scale-105">
+          {student.profile_photo ? (
+            <img src={`${API.replace('/api', '')}/${student.profile_photo}`} alt="" className="w-full h-full object-cover" />
+          ) : (
+            initials
+          )}
         </div>
       </div>
     </header>
