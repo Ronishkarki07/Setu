@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Logo from "../../images/footer-logo.svg";
+import Logo from "../../assets/react.svg";
+import AdminSidebar from "../../components/AdminSidebar";
+import ManualTicketModal from "../../components/admin/ManualTicketModal";
 
 const API = "http://localhost:3000/api";
 
@@ -18,7 +20,8 @@ export default function AdminDashboard() {
   });
 
   const adminToken = localStorage.getItem("adminToken");
-  const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
+  const [showManualModal, setShowManualModal] = useState(false);
+  const adminData = JSON.parse(localStorage.getItem("admin") || "{}");
 
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -132,43 +135,22 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex">
-      <aside className="w-64 bg-[#0f172a] text-[#94a3b8] flex flex-col fixed inset-y-0 left-0 z-50">
-        <div className="p-6 flex items-center gap-3 border-b border-white/5 mb-4">
-          <div className="w-8 h-8 bg-white/10 rounded flex items-center justify-center">
-            <img src={Logo} alt="Logo" className="w-6 h-6" />
-          </div>
-          <span className="text-white font-bold text-lg">Help Desk System</span>
-        </div>
-        <nav className="flex-1 px-4 overflow-y-auto space-y-6 pb-6 custom-scrollbar">
-          <div>
-            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-2 mb-3">Main</p>
-            <div className="space-y-1">
-              <NavItem icon="📊" label="Dashboard" active onClick={() => navigate("/admin/dashboard")} />
-              <NavItem icon="🎫" label="Tickets" onClick={() => navigate("/admin/tickets")} />
-              <NavItem icon="🏢" label="Departments" />
-              <NavItem icon="👥" label="Users" />
-              <NavItem icon="🛡️" label="Roles & Permissions" />
-            </div>
-          </div>
-        </nav>
-        <div className="p-4 border-t border-white/5">
-          <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 text-sm hover:text-white hover:bg-white/5 rounded-xl w-full transition-all">
-            <span>🚪</span> Logout
-          </button>
-        </div>
-      </aside>
+      <AdminSidebar setShowManualModal={setShowManualModal} />
 
       <main className="ml-64 flex-1 flex flex-col min-h-screen">
         <header className="h-16 bg-white border-b border-gray-200 px-8 flex items-center justify-between sticky top-0 z-40">
+          <h1 className="text-sm font-black text-[#0D1B3E] uppercase tracking-widest">Setu Central Intelligence</h1>
           <div className="flex items-center gap-4">
-            <h1 className="text-xl font-bold text-gray-800">Admin Dashboard</h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <p className="text-sm font-bold text-gray-800">{adminData.name || "Admin"}</p>
-              <p className="text-[10px] text-gray-400 uppercase tracking-tighter">System Administrator</p>
+            <button className="text-gray-400 hover:text-[#0D1B3E]">🔔</button>
+            <div className="flex items-center gap-3 ml-4">
+              <div className="text-right">
+                <p className="text-sm font-bold text-[#0D1B3E]">{adminData.name || "Admin"}</p>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Global Oversight</p>
+              </div>
+              <div className="w-10 h-10 bg-[#0D1B3E] text-white rounded-full flex items-center justify-center text-sm font-bold border border-gray-200 shadow-sm transition-transform hover:scale-105">
+                {(adminData.name || "A").split(" ").map(w => w[0]).join("").slice(0, 2)}
+              </div>
             </div>
-            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-400">👤</div>
           </div>
         </header>
 
@@ -297,6 +279,10 @@ export default function AdminDashboard() {
           </div>
         </div>
       </main>
+
+      {showManualModal && (
+        <ManualTicketModal onClose={() => setShowManualModal(false)} />
+      )}
 
       {showDetailModal && selectedTicket && (
         <div className="fixed inset-0 bg-[#0f172a]/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
