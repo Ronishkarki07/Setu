@@ -47,7 +47,7 @@ export default function AdminLogin() {
       // SUCCESS
       localStorage.setItem("adminToken", data.token);
       localStorage.setItem("adminData", JSON.stringify(data.admin));
-
+      
       // Also clear student data to avoid confusion
       localStorage.removeItem("token");
       localStorage.removeItem("student");
@@ -81,15 +81,8 @@ export default function AdminLogin() {
 
       {/* card */}
       <div
-        className="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden p-8 relative"
+        className="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden p-8"
       >
-        <button
-          onClick={() => navigate('/')}
-          className="absolute top-4 left-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-white shadow-sm flex items-center justify-center transition-all hover:scale-110 active:scale-95"
-          title="Back to Home"
-        >
-          ←
-        </button>
         <div className="flex flex-col items-center mb-8">
           <img src={Logo} alt="Logo" className="w-20 h-20 mb-4" />
           <h1 className="text-3xl font-bold text-white text-center">Admin Portal</h1>
@@ -108,7 +101,7 @@ export default function AdminLogin() {
               </span>
               <input
                 type="email"
-                placeholder="admin@bicnepal.edu.np"
+                placeholder="admin@setu.edu.np"
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setError(""); }}
                 onKeyDown={(e) => e.key === "Enter" && handleLogin()}

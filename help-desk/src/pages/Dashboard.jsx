@@ -42,15 +42,11 @@ function TopNav() {
       </div>
 
       <div className="flex items-center gap-4">
-        <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-400">
+        <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-600">
           🔔
         </button>
-        <div className="w-10 h-10 bg-[#0d1b3e] text-white rounded-full flex items-center justify-center text-sm font-bold border border-gray-200 overflow-hidden shadow-sm transition-transform hover:scale-105">
-          {student.profile_photo ? (
-            <img src={`${API.replace('/api', '')}/${student.profile_photo}`} alt="" className="w-full h-full object-cover" />
-          ) : (
-            initials
-          )}
+        <div className="w-10 h-10 bg-[#8B0000] text-white rounded-full flex items-center justify-center text-sm font-bold cursor-pointer hover:bg-[#a50e2d]">
+          {initials}
         </div>
       </div>
     </header>
@@ -60,7 +56,6 @@ function TopNav() {
 /* ---------------- MAIN DASHBOARD ---------------- */
 export default function Dashboard() {
   const [recent, setRecent] = useState([]);
-  const [announcements, setAnnouncements] = useState([]);
   const [stats, setStats] = useState({ total: 0, open_count: 0, inprogress_count: 0, resolved_count: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -70,7 +65,7 @@ export default function Dashboard() {
     const token = getToken();
     if (!token) return;
 
-    // Fetch tickets + stats + announcements in parallel
+    // Fetch tickets + stats in parallel
     Promise.all([
       fetch(`${API}/tickets/my-tickets`, { headers: authHeaders() })
         .then((r) => r.json())
@@ -78,13 +73,10 @@ export default function Dashboard() {
       fetch(`${API}/tickets/stats/overview`, { headers: authHeaders() })
         .then((r) => r.json())
         .catch(() => ({ statistics: {} })),
-      fetch(`${API}/announcements`)
-        .then((r) => r.json())
-        .catch(() => []),
     ])
-      .then(([ticketsData, statsData, announcementsData]) => {
+      .then(([ticketsData, statsData]) => {
+        // Show latest 5 tickets as recent activity
         setRecent((ticketsData.tickets || []).slice(0, 5));
-        setAnnouncements(announcementsData.filter(a => a.audience === 'all' || a.audience === 'students').slice(0, 3));
 
         const s = statsData.statistics || {};
         setStats({
@@ -172,8 +164,8 @@ export default function Dashboard() {
                           r.status === "resolved"
                             ? "#16a34a"
                             : r.status === "open"
-                              ? "#8B0000"
-                              : "#eab308",
+                            ? "#8B0000"
+                            : "#eab308",
                       }}
                     >
                       <div className="flex justify-between items-start">
@@ -183,8 +175,8 @@ export default function Dashboard() {
                               {r.status === "resolved"
                                 ? "✓"
                                 : r.status === "open"
-                                  ? "!"
-                                  : "⚙"}
+                                ? "!"
+                                : "⚙"}
                             </span>
                             <p className="font-bold text-gray-800">{r.title}</p>
                           </div>
@@ -197,14 +189,15 @@ export default function Dashboard() {
                         </div>
 
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ml-4 ${r.status === "resolved"
+                          className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ml-4 ${
+                            r.status === "resolved"
                               ? "bg-green-100 text-green-700"
                               : r.status === "open"
-                                ? "bg-red-100 text-red-700"
-                                : r.status === "in_progress"
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : "bg-gray-100 text-gray-700"
-                            }`}
+                              ? "bg-red-100 text-red-700"
+                              : r.status === "in_progress"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-gray-100 text-gray-700"
+                          }`}
                         >
                           {statusLabel(r.status)}
                         </span>
@@ -246,29 +239,14 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* INSTITUTIONAL ANNOUNCEMENTS */}
+            {/* TIPS & ANNOUNCEMENTS */}
             <div>
-              <h3 className="text-lg font-bold text-gray-800 mb-4">Institutional Updates</h3>
-              <div className="space-y-4">
-                {announcements.length === 0 ? (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm font-semibold text-blue-900 mb-1">💡 No New Updates</p>
-                    <p className="text-xs text-blue-700">Check back later for campus-wide announcements.</p>
-                  </div>
-                ) : (
-                  announcements.map(a => (
-                    <div key={a.id} className={`p-4 rounded-xl border ${a.is_emergency ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-100'} transition-all hover:shadow-sm`}>
-                      <div className="flex justify-between items-start mb-2">
-                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${a.is_emergency ? 'bg-red-500 text-white' : 'bg-blue-100 text-blue-600'}`}>
-                          {a.is_emergency ? 'Emergency' : 'Update'}
-                        </span>
-                        <span className="text-[10px] text-gray-400">{new Date(a.created_at).toLocaleDateString()}</span>
-                      </div>
-                      <h4 className="text-sm font-bold text-[#0d1b3e] mb-1">{a.title}</h4>
-                      <p className="text-xs text-gray-500 line-clamp-2">{a.content}</p>
-                    </div>
-                  ))
-                )}
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Tips & Updates</h3>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm font-semibold text-blue-900 mb-1">💡 Pro Tip</p>
+                <p className="text-xs text-blue-700">
+                  Use ticket tags to organize and filter your requests for better tracking.
+                </p>
               </div>
             </div>
           </div>

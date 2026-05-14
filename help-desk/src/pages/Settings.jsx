@@ -54,23 +54,16 @@ function TopNav() {
     .slice(0, 2);
 
   return (
-    <header className="flex justify-between px-8 h-16 bg-white bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+    <header className="flex justify-between px-8 h-14 bg-white border-b sticky top-0 z-10">
       <div className="flex gap-6 items-center">
-        <span className="text-[#0d1b3e] font-bold border-b-2 border-[#DC143C] h-full flex items-center pt-1">
+        <span className="text-[#0d1b3e] font-bold border-b-2 border-[#DC143C]">
           Settings
         </span>
       </div>
 
-      <div className="flex items-center gap-4">
-        <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-400">
-          🔔
-        </button>
-        <div className="w-10 h-10 bg-[#0d1b3e] text-white rounded-full flex items-center justify-center text-sm font-bold border border-gray-200 overflow-hidden shadow-sm transition-transform hover:scale-105">
-          {student.profile_photo ? (
-            <img src={`${API.replace('/api', '')}/${student.profile_photo}`} alt="" className="w-full h-full object-cover" />
-          ) : (
-            initials
-          )}
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 bg-[#0d1b3e] text-white rounded-full flex items-center justify-center text-xs">
+          {initials}
         </div>
       </div>
     </header>

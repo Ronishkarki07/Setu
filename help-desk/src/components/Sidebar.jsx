@@ -7,41 +7,42 @@ export default function Sidebar({ onNewTicket }) {
 
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path);
 
-  const NavItem = ({ icon, label, path }) => (
-    <div
-      onClick={() => navigate(path)}
-      className={`flex items-center gap-4 px-6 py-3.5 text-sm cursor-pointer transition-all ${
-        isActive(path)
-          ? "bg-[#F3F4F6] text-[#0D1B3E] font-bold border-r-4 border-[#0D1B3E]"
-          : "text-gray-400 hover:text-[#0D1B3E] hover:bg-gray-50"
-      }`}
-    >
-      <span className={`text-lg ${isActive(path) ? "text-[#0D1B3E]" : "text-gray-400"}`}>{icon}</span>
-      {label}
-    </div>
-  );
-
   return (
-    <aside className="w-64 bg-white border-r border-gray-100 flex flex-col fixed inset-y-0 left-0 z-50">
-      {/* Logo Section */}
-      <div className="p-8 flex flex-col gap-1 mb-4">
-        <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#0D1B3E] rounded-xl flex items-center justify-center text-white text-xl shadow-lg shadow-blue-900/20">S</div>
-            <div className="flex flex-col">
-                <span className="text-[#0D1B3E] font-black text-2xl tracking-tighter leading-none uppercase">Setu</span>
-            </div>
+    <aside className="w-56 bg-white flex flex-col min-h-screen border-r border-gray-200 fixed left-0 top-0 z-50">
+      <div className="flex items-center gap-3 px-5 py-6 border-b border-gray-200">
+        <div className="w-10 h-10 rounded-lg bg-[#8B0000] text-white flex items-center justify-center font-bold text-sm">
+          ST
         </div>
-        <span className="text-[10px] text-gray-300 font-bold uppercase tracking-[0.2em] mt-1">Institutional Portal</span>
+        <div>
+          <div className="text-gray-800 font-bold text-sm">Setu</div>
+          <div className="text-gray-400 text-[9px] tracking-widest">STUDENT PORTAL</div>
+        </div>
       </div>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto custom-scrollbar">
-        <NavItem icon="📊" label="Dashboard" path="/dashboard" />
-        <NavItem icon="🎫" label="My Tickets" path="/tickets" />
-        <NavItem icon="📣" label="Announcements" path="/announcements" />
-        <NavItem icon="⚙️" label="Settings" path="/settings" />
-      </nav>
+      <nav className="p-3 flex-1">
+        <div
+          onClick={() => navigate("/dashboard")}
+          className={`flex items-center gap-3 px-3 py-3 text-sm cursor-pointer rounded-lg mb-2 ${
+            isActive("/dashboard")
+              ? "text-[#8B0000] bg-red-50 border-l-4 border-[#8B0000]"
+              : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+          }`}
+        >
+          <span className="text-lg">📊</span> Dashboard
+        </div>
 
-      <div className="p-6 space-y-3">
+        <div
+          onClick={() => navigate("/tickets")}
+          className={`flex items-center gap-3 px-3 py-3 text-sm cursor-pointer rounded-lg mb-2 ${
+            isActive("/tickets")
+              ? "text-[#8B0000] bg-red-50 border-l-4 border-[#8B0000]"
+              : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+          }`}
+        >
+          <span className="text-lg">🎫</span> Tickets
+        </div>
+
+        {/* ✅ FIXED BUTTON */}
         <button
           onClick={() => {
             if (typeof onNewTicket === "function") {
@@ -50,21 +51,37 @@ export default function Sidebar({ onNewTicket }) {
               navigate("/tickets", { state: { openNewTicket: true } });
             }
           }}
-          className="flex items-center justify-center gap-3 px-4 py-3.5 text-sm bg-[#0D1B3E] text-white rounded-xl w-full hover:bg-black transition-all font-black shadow-xl shadow-blue-900/20"
+          className="mt-6 w-full py-3 rounded-lg bg-[#8B0000] text-white font-bold text-sm hover:bg-[#a50e2d]"
         >
-          <span className="text-lg">+</span> New Ticket
+          + New Ticket
         </button>
-        <button 
+      </nav>
+
+      <div className="px-3 pb-3 border-t border-gray-200 pt-4">
+        <div
+          onClick={() => navigate("/settings")}
+          className={`px-3 py-2 text-sm cursor-pointer rounded-lg ${
+            isActive("/settings")
+              ? "text-[#8B0000] bg-red-50 border-l-4 border-[#8B0000]"
+              : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+          }`}
+        >
+          ⚙ Settings
+        </div>
+
+        <div
           onClick={() => {
             localStorage.removeItem("token");
             localStorage.removeItem("student");
             navigate("/");
           }}
-          className="flex items-center gap-3 px-6 py-3.5 text-sm font-bold text-gray-400 hover:text-[#0D1B3E] hover:bg-gray-50 rounded-xl w-full transition-all"
+          className="px-3 py-2 text-gray-500 text-sm cursor-pointer hover:text-red-600 hover:bg-gray-50 rounded-lg"
         >
-          <span>🚪</span> Sign Out
-        </button>
+          → Sign Out
+        </div>
       </div>
+
+
     </aside>
   );
 }
