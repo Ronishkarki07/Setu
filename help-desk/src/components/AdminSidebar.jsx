@@ -1,11 +1,11 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-export default function Sidebar({ onNewTicket }) {
+export default function AdminSidebar({ setShowManualModal }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path);
+  const isActive = (path) => location.pathname === path;
 
   const NavItem = ({ icon, label, path }) => (
     <div
@@ -35,34 +35,27 @@ export default function Sidebar({ onNewTicket }) {
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto custom-scrollbar">
-        <NavItem icon="📊" label="Dashboard" path="/dashboard" />
-        <NavItem icon="🎫" label="My Tickets" path="/tickets" />
-        <NavItem icon="📣" label="Announcements" path="/announcements" />
-        <NavItem icon="⚙️" label="Settings" path="/settings" />
+        <NavItem icon="📊" label="Dashboard" path="/admin/dashboard" />
+        <NavItem icon="🎫" label="Ticket Queue" path="/admin/tickets" />
+        <NavItem icon="🏢" label="Departments" path="/admin/departments" />
+        <NavItem icon="👥" label="Users" path="/admin/users" />
+        <NavItem icon="📣" label="Announcements" path="/admin/announcements" />
+        <NavItem icon="⚙️" label="Settings" path="/admin/settings" />
+        <NavItem icon="❓" label="Support" path="/admin/support" />
       </nav>
 
       <div className="p-6 space-y-3">
         <button
-          onClick={() => {
-            if (typeof onNewTicket === "function") {
-              onNewTicket();
-            } else {
-              navigate("/tickets", { state: { openNewTicket: true } });
-            }
-          }}
+          onClick={() => setShowManualModal && setShowManualModal(true)}
           className="flex items-center justify-center gap-3 px-4 py-3.5 text-sm bg-[#0D1B3E] text-white rounded-xl w-full hover:bg-black transition-all font-black shadow-xl shadow-blue-900/20"
         >
           <span className="text-lg">+</span> New Ticket
         </button>
         <button 
-          onClick={() => {
-            localStorage.removeItem("token");
-            localStorage.removeItem("student");
-            navigate("/");
-          }}
+          onClick={() => { localStorage.clear(); navigate("/admin/login"); }} 
           className="flex items-center gap-3 px-6 py-3.5 text-sm font-bold text-gray-400 hover:text-[#0D1B3E] hover:bg-gray-50 rounded-xl w-full transition-all"
         >
-          <span>🚪</span> Sign Out
+          <span>🚪</span> Logout
         </button>
       </div>
     </aside>
