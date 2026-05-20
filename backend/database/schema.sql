@@ -7,8 +7,8 @@ CREATE TABLE IF NOT EXISTS students (
   id INT PRIMARY KEY AUTO_INCREMENT,
   name VARCHAR(255) NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
-  faculty VARCHAR(100) NOT NULL,
-  level VARCHAR(50) NOT NULL,
+  faculty VARCHAR(100) NULL,
+  level VARCHAR(50) NULL,
   password VARCHAR(255) NOT NULL,
   is_active BOOLEAN DEFAULT true,
   is_verified BOOLEAN DEFAULT false,
@@ -20,8 +20,7 @@ CREATE TABLE IF NOT EXISTS students (
   profile_photo VARCHAR(255) NULL,
   INDEX idx_email (email),
   INDEX idx_faculty (faculty),
-  INDEX idx_level (level),
-  CONSTRAINT email_validation CHECK (email LIKE '%@bicnepal.edu.np')
+  INDEX idx_level (level)
 );
 
 -- Tickets Table
