@@ -59,7 +59,6 @@ export default function LandingPage() {
               Student Login <span className="opacity-50">→</span>
             </button>
             <button 
-              onClick={() => navigate('/dept/login')}
               className="px-8 py-3.5 bg-white text-[#050B1C] font-black text-xs rounded-lg hover:bg-gray-100 transition-all uppercase tracking-widest shadow-xl"
             >
               Department Access

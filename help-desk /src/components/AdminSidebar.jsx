@@ -40,6 +40,8 @@ export default function AdminSidebar({ setShowManualModal }) {
         <NavItem icon="🏢" label="Departments" path="/admin/departments" />
         <NavItem icon="👥" label="Users" path="/admin/users" />
         <NavItem icon="📣" label="Announcements" path="/admin/announcements" />
+        <NavItem icon="⚙️" label="Settings" path="/admin/settings" />
+        <NavItem icon="❓" label="Support" path="/admin/support" />
       </nav>
 
       <div className="p-6 space-y-3">

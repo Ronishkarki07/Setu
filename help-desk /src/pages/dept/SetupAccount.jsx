@@ -19,14 +19,7 @@ export default function SetupAccount() {
     fetch(`${API}/dept/validate-invite?token=${token}`)
       .then(r => r.json())
       .then(data => {
-        if (data.valid) {
-          setDeptInfo(data);
-          if (data.alreadyAccepted) {
-            setStep("success");
-          } else {
-            setStep("valid");
-          }
-        }
+        if (data.valid) { setDeptInfo(data); setStep("valid"); }
         else setStep("invalid");
       })
       .catch(() => setStep("invalid"));

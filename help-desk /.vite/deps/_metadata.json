@@ -1,42 +1,8 @@
 {
-  "hash": "254496b0",
-  "configHash": "f90ab65c",
-  "lockfileHash": "e68fe589",
-  "browserHash": "d58aab12",
-  "optimized": {
-    "react-dom/client": {
-      "src": "../../node_modules/react-dom/client.js",
-      "file": "react-dom_client.js",
-      "fileHash": "f99494bf",
-      "needsInterop": true
-    },
-    "react-router-dom": {
-      "src": "../../node_modules/react-router-dom/dist/index.mjs",
-      "file": "react-router-dom.js",
-      "fileHash": "279ae123",
-      "needsInterop": false
-    },
-    "react": {
-      "src": "../../node_modules/react/index.js",
-      "file": "react.js",
-      "fileHash": "94b24e86",
-      "needsInterop": true
-    },
-    "react/jsx-dev-runtime": {
-      "src": "../../node_modules/react/jsx-dev-runtime.js",
-      "file": "react_jsx-dev-runtime.js",
-      "fileHash": "cd4e0cf6",
-      "needsInterop": true
-    }
-  },
-  "chunks": {
-    "react-BejDdLFV": {
-      "file": "react-BejDdLFV.js",
-      "isDynamicEntry": false
-    },
-    "react-dom-Ds__Jv24": {
-      "file": "react-dom-Ds__Jv24.js",
-      "isDynamicEntry": false
-    }
-  }
+  "hash": "17d359dd",
+  "configHash": "04327dd4",
+  "lockfileHash": "b028054d",
+  "browserHash": "41eead9a",
+  "optimized": {},
+  "chunks": {}
 }

@@ -52,16 +52,17 @@ export default function AdminAnnouncements() {
       
       <main className="ml-64 flex-1 flex flex-col min-h-screen">
         <header className="h-16 bg-white border-b border-gray-200 px-8 flex items-center justify-between sticky top-0 z-40">
-          <h1 className="text-sm font-black text-[#0D1B3E] uppercase tracking-widest">SETU ADMIN PORTAL</h1>
+          <h1 className="text-sm font-black text-[#0D1B3E] uppercase tracking-widest">Academic Curator Helpdesk</h1>
           <div className="flex items-center gap-4">
+            <button className="text-gray-400 hover:text-[#0D1B3E]">🔔</button>
             <button className="text-gray-400 hover:text-[#0D1B3E]">❓</button>
             <div className="flex items-center gap-3 ml-4">
               <div className="text-right">
-                <p className="text-sm font-bold text-[#0D1B3E]">{adminData.name || "System Administrator"}</p>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">SENIOR CONTROLLER</p>
+                <p className="text-sm font-bold text-[#0D1B3E]">{adminData.name || "Admin"}</p>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Chief Registrar</p>
               </div>
               <div className="w-10 h-10 bg-[#0D1B3E] text-white rounded-full flex items-center justify-center text-sm font-bold border border-gray-200 overflow-hidden shadow-sm">
-                {(adminData.name || "System Administrator").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()}
+                {(adminData.name || "A").split(" ").map(w => w[0]).join("").slice(0, 2)}
               </div>
             </div>
           </div>

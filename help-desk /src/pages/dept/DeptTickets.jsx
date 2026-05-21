@@ -66,6 +66,26 @@ export default function DeptTickets() {
     <div className="min-h-screen bg-[#f5f6fa]">
       <DeptSidebar />
       <main className="ml-56 min-h-screen">
+        {/* Topbar */}
+        <header className="h-14 bg-white border-b border-gray-200 px-8 flex items-center justify-between sticky top-0 z-40 shadow-sm">
+          <div className="flex items-center gap-2 text-xs text-gray-400">
+            <button onClick={() => navigate("/dept/dashboard")} className="hover:text-gray-700 font-semibold">Academic Nexus</button>
+            <span>/</span>
+            <span className="font-semibold text-gray-600">Department Queue</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <input placeholder="Search tickets..." className="bg-gray-100 rounded-full px-4 py-1.5 text-xs outline-none w-44 pr-7" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">🔍</span>
+            </div>
+            <button className="relative w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400">🔔<span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white"/></button>
+            <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400">❓</button>
+            <div className="w-8 h-8 bg-[#0d1b3e] text-white rounded-full flex items-center justify-center text-xs font-bold">
+              {(head.name||"D").split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2)}
+            </div>
+          </div>
+        </header>
+
         <div className="p-8 space-y-6 max-w-7xl mx-auto">
           {/* Page header */}
           <div className="flex items-start justify-between">

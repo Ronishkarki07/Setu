@@ -28,12 +28,6 @@ export default function Announcements() {
   };
 
   const student = JSON.parse(localStorage.getItem("student") || "{}");
-  const initials = (student.name || "U")
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -48,12 +42,8 @@ export default function Announcements() {
                 <p className="text-sm font-bold text-[#0D1B3E]">{student.name || "Student"}</p>
                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Verified Student</p>
               </div>
-              <div className="w-10 h-10 bg-[#0d1b3e] text-white rounded-full flex items-center justify-center text-sm font-bold border border-gray-200 overflow-hidden shadow-sm transition-transform hover:scale-105">
-                {student.profile_photo ? (
-                  <img src={`${API.replace('/api', '')}/${student.profile_photo}`} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  initials
-                )}
+              <div className="w-10 h-10 bg-[#0D1B3E] text-white rounded-full flex items-center justify-center font-bold">
+                {(student.name || "S")[0]}
               </div>
             </div>
           </div>

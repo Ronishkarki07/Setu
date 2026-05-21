@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const pool = require('../config/database');
-const Student = require('../models/Student');
 require('dotenv').config();
 
 /*
@@ -87,6 +86,7 @@ function sanitizeInput(str) {
 exports.login = async (req, res) => {
   try {
     const clientIp = req.ip || req.connection.remoteAddress;
+
     // --- Rate-limit check ---
     const rateCheck = checkRateLimit(clientIp);
     if (rateCheck.blocked) {
@@ -180,32 +180,6 @@ exports.login = async (req, res) => {
   } catch (error) {
     console.error('Admin login error:', error);
     res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-/*
- * ============================================================
- *  CREATE USER (protected)
- * ============================================================
- */
-exports.createUser = async (req, res) => {
-  try {
-    const { name, email, faculty = null, level = null } = req.body;
-    if (!name || !email) return res.status(400).json({ error: 'Name and email are required' });
-
-    // prevent duplicate
-    const existing = await Student.findByEmail(email);
-    if (existing) return res.status(409).json({ error: 'User with this email already exists' });
-
-    // generate a default password (should be changed by user)
-    const defaultPassword = Math.random().toString(36).slice(-8) + 'A1!';
-
-    const created = await Student.create({ name, email, faculty, level, password: defaultPassword });
-
-    res.json({ user: created, message: 'Student created', tempPassword: defaultPassword });
-  } catch (error) {
-    console.error('Create user error:', error);
-    res.status(500).json({ error: 'Failed to create user' });
   }
 };
 

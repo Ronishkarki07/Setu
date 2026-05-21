@@ -87,18 +87,9 @@ export default function DeptLogin() {
           </div>
 
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
-            <button
-              type="button"
-              onClick={() => navigate("/")}
-              className="mb-5 inline-flex items-center gap-2 text-xs font-bold text-white/60 hover:text-white transition-colors"
-            >
-              <span className="text-sm">←</span>
-              Back
-            </button>
-
             <div className="mb-2">
               <span className="inline-block text-[10px] font-black text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full uppercase tracking-widest">
-                Department Portal
+                Invitation Only
               </span>
             </div>
             <h1 className="text-2xl font-black text-white mt-3 mb-1">Sign In</h1>

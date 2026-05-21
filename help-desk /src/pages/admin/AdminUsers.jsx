@@ -10,17 +10,13 @@ export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("student");
+  const [filter, setFilter] = useState("all");
   const [showManualModal, setShowManualModal] = useState(false);
-  const [showAddUserModal, setShowAddUserModal] = useState(false);
-  const [newUser, setNewUser] = useState({ name: '', email: '' });
   const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
 
   useEffect(() => {
     fetchUsers();
   }, []);
-
-  const studentCount = users.filter(u => u.role === 'student').length;
 
   const fetchUsers = async () => {
     try {
@@ -38,7 +34,8 @@ export default function AdminUsers() {
 
   const filteredUsers = users.filter(u => {
     const matchesSearch = u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
-    return u.role === 'student' && matchesSearch;
+    const matchesFilter = filter === "all" || u.role === filter;
+    return matchesSearch && matchesFilter;
   });
 
   return (
@@ -48,7 +45,12 @@ export default function AdminUsers() {
       <main className="ml-64 flex-1 flex flex-col min-h-screen">
         <header className="h-16 bg-white border-b border-gray-200 px-8 flex items-center justify-between sticky top-0 z-40">
           <div className="flex items-center gap-8">
-            <h1 className="text-sm font-black text-[#0D1B3E] uppercase tracking-widest">SETU ADMIN PORTAL</h1>
+            <h1 className="text-sm font-black text-[#0D1B3E] uppercase tracking-widest">Academic Curator Helpdesk</h1>
+            <nav className="hidden md:flex gap-6 text-[10px] font-black text-gray-300 uppercase tracking-widest">
+                <span className="text-[#0D1B3E] border-b-2 border-[#0D1B3E] pb-1 cursor-pointer">Overview</span>
+                <span className="hover:text-[#0D1B3E] transition-colors cursor-pointer">Directory</span>
+                <span className="hover:text-[#0D1B3E] transition-colors cursor-pointer">Permissions</span>
+            </nav>
           </div>
           <div className="flex items-center gap-4">
             <div className="relative mr-4 hidden lg:block">
@@ -59,14 +61,10 @@ export default function AdminUsers() {
                     className="pl-10 pr-4 py-2 bg-gray-50 border-none rounded-xl text-xs outline-none focus:ring-1 focus:ring-blue-500 w-64"
                 />
             </div>
-            <div className="flex items-center gap-3 ml-4">
-              <div className="text-right">
-                <p className="text-sm font-bold text-[#0D1B3E]">{adminData.name || "System Administrator"}</p>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">SENIOR CONTROLLER</p>
-              </div>
-              <div className="w-10 h-10 bg-[#0D1B3E] text-white rounded-full flex items-center justify-center text-sm font-bold border border-gray-200 overflow-hidden shadow-sm">
-                {(adminData.name || "System Administrator").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()}
-              </div>
+            <button className="text-gray-400 hover:text-[#0D1B3E]">🔔</button>
+            <button className="text-gray-400 hover:text-[#0D1B3E]">❓</button>
+            <div className="w-10 h-10 bg-[#0D1B3E] text-white rounded-full flex items-center justify-center text-sm font-bold border border-gray-200 overflow-hidden shadow-sm ml-2">
+                {(adminData.name || "A").split(" ").map(w => w[0]).join("").slice(0, 2)}
             </div>
           </div>
         </header>
@@ -78,14 +76,15 @@ export default function AdminUsers() {
               <p className="text-gray-400 font-medium">Registry of institutional personnel. Update roles, manage access tiers, and monitor account statuses.</p>
             </div>
             <div className="flex gap-3">
-              <button className="px-6 py-3 border border-gray-200 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:bg-gray-50 flex items-center gap-2">📥 Export Directory</button>
+                <button className="px-6 py-3 border border-gray-200 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:bg-gray-50 flex items-center gap-2">📥 Export Directory</button>
+                <button className="px-6 py-3 bg-[#0D1B3E] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black flex items-center gap-2 shadow-xl shadow-blue-900/20 transition-all">+ Add New User</button>
             </div>
           </div>
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-            <UserStatCard label="Total Students" value={studentCount.toLocaleString()} trend="+ 12% from last term" />
-            <UserStatCard label="Active Students" value={Math.floor(studentCount * 0.34).toLocaleString()} subtext="Live system activity" color="text-green-500" dot="bg-green-500" />
+            <UserStatCard label="Total Users" value={users.length.toLocaleString()} trend="+ 12% from last term" />
+            <UserStatCard label="Active Now" value={Math.floor(users.length * 0.34).toLocaleString()} subtext="Live system activity" color="text-green-500" dot="bg-green-500" />
             <UserStatCard label="Admin Roles" value="24" subtext="Restricted access levels" dot="bg-blue-500" />
             <UserStatCard label="Pending Sync" value="0" subtext="SiS Fully Synced" color="text-green-500" dot="bg-green-500" />
           </div>
@@ -106,7 +105,10 @@ export default function AdminUsers() {
                 <button className="p-3 bg-gray-50 rounded-2xl text-gray-400 hover:text-[#0D1B3E] border border-gray-100">🎚️</button>
             </div>
             <div className="flex bg-gray-50 p-1 rounded-2xl border border-gray-100">
-              <FilterTab label="Students" active={filter === "student"} onClick={() => setFilter("student")} />
+                <FilterTab label="All Users" active={filter === "all"} onClick={() => setFilter("all")} />
+                <FilterTab label="Students" active={filter === "student"} onClick={() => setFilter("student")} />
+                <FilterTab label="Department" active={filter === "staff"} onClick={() => setFilter("staff")} />
+                <FilterTab label="Admins" active={filter === "admin"} onClick={() => setFilter("admin")} />
             </div>
           </div>
 
@@ -147,7 +149,7 @@ export default function AdminUsers() {
                             </td>
                             <td className="px-10 py-6">
                                 <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded-lg text-[9px] font-black uppercase tracking-widest border border-gray-200">
-                                  {formatRole(u.role)}
+                                    {u.role.replace('_', ' ')}
                                 </span>
                             </td>
                             <td className="px-10 py-6">
@@ -179,56 +181,38 @@ export default function AdminUsers() {
                 </div>
             </div>
           </div>
+
+          {/* Bottom Row - Policy Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="md:col-span-2 bg-[#0D1B3E] rounded-[40px] p-12 text-white flex justify-between items-center shadow-2xl relative overflow-hidden">
+                <div className="relative z-10 max-w-md">
+                    <h3 className="text-2xl font-black mb-4">Institutional Role Policy</h3>
+                    <p className="text-blue-200/50 font-medium text-sm leading-relaxed mb-8">Update the system-wide permissions for Departmental Heads and IT Staff. Ensure all roles align with the 2024 Privacy Guidelines.</p>
+                    <div className="flex gap-4">
+                        <button className="px-6 py-3 bg-white text-[#0D1B3E] rounded-xl text-[10px] font-black uppercase tracking-widest">Configure Roles</button>
+                        <button className="px-6 py-3 border border-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest">View Audit Log</button>
+                    </div>
+                </div>
+                <div className="text-8xl opacity-10 grayscale">🛡️</div>
+            </div>
+            <div className="bg-[#FF6B6B] rounded-[40px] p-12 text-white shadow-xl shadow-red-500/20 relative group cursor-pointer overflow-hidden">
+                <div className="relative z-10">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-xl mb-6">🛰️</div>
+                    <h3 className="text-2xl font-black mb-4 leading-tight">Bulk Revoke</h3>
+                    <p className="text-red-100/60 font-medium text-sm leading-relaxed">Immediately deactivate access for a batch of expired credentials.</p>
+                    <div className="mt-10 flex justify-end">
+                        <span className="text-2xl transition-transform group-hover:translate-x-2">→</span>
+                    </div>
+                </div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-9xl font-black text-white/5 uppercase select-none pointer-events-none">REVOKE</div>
+            </div>
+          </div>
         </div>
       </main>
 
       {showManualModal && <ManualTicketModal onClose={() => setShowManualModal(false)} />}
-      {showAddUserModal && (
-        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <h3 className="text-lg font-black mb-4">Create Student</h3>
-            <div className="space-y-3">
-              <input value={newUser.name} onChange={(e) => setNewUser(prev => ({...prev, name: e.target.value}))} placeholder="Full name" className="w-full px-4 py-3 border rounded-lg" />
-              <input value={newUser.email} onChange={(e) => setNewUser(prev => ({...prev, email: e.target.value}))} placeholder="Email" className="w-full px-4 py-3 border rounded-lg" />
-              <div className="flex justify-end gap-2 pt-4">
-                <button onClick={() => setShowAddUserModal(false)} className="px-4 py-2 rounded-lg border">Cancel</button>
-                <button onClick={async () => {
-                  try {
-                    const res = await fetch(`${API}/admin/users`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
-                      body: JSON.stringify(newUser)
-                    });
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error || 'Failed');
-                    // Refresh list
-                    fetchUsers();
-                    setShowAddUserModal(false);
-                    setNewUser({ name: '', email: '' });
-                    alert('Student created — temporary password: ' + (data.tempPassword || 'Sent'));
-                  } catch (err) {
-                    alert('Error creating student: ' + err.message);
-                  }
-                }} className="px-4 py-2 rounded-lg bg-[#0D1B3E] text-white">Create</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
-}
-
-function formatRole(role) {
-  if (!role) return "";
-  const map = {
-    'department_head': 'Head',
-    'staff': 'Staff',
-    'student': 'Student',
-    'admin': 'Admin'
-  };
-  if (map[role]) return map[role];
-  return role.replace(/_/g, ' ');
 }
 
 function UserStatCard({ label, value, trend, subtext, color = "text-[#0D1B3E]", dot }) {

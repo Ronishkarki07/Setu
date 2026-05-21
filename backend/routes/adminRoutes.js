@@ -20,7 +20,6 @@ router.get('/profile', verifyAdminToken, adminController.getProfile);
 
 // --- User Registry ---
 router.get('/users', verifyAdminToken, adminController.getAllUsers);
-router.post('/users', verifyAdminToken, adminController.createUser);
 router.patch('/users/:id/status', verifyAdminToken, adminController.updateUserStatus);
 router.get('/metadata', verifyAdminToken, adminController.getInstitutionalMetadata);
 

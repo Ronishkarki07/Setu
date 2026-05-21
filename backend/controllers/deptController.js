@@ -8,7 +8,6 @@ require('dotenv').config();
    Body: { token, name, password }
 ───────────────────────────────────────────────────────────── */
 exports.acceptInvitation = async (req, res) => {
-  const connection = await pool.getConnection();
   try {
     const { token, name, password } = req.body;
 
@@ -21,9 +20,9 @@ exports.acceptInvitation = async (req, res) => {
     }
 
     // Validate token
-    const [invitations] = await connection.query(
+    const [invitations] = await pool.query(
       `SELECT * FROM department_invitations 
-       WHERE token = ? AND expires_at > NOW()`,
+       WHERE token = ? AND status = 'pending' AND expires_at > NOW()`,
       [token]
     );
 
@@ -34,64 +33,41 @@ exports.acceptInvitation = async (req, res) => {
     const invitation = invitations[0];
     const { email, department_name } = invitation;
 
-    if (invitation.status === 'accepted') {
-      return res.status(200).json({
-        message: 'Account created successfully. You can now login.',
-        department: department_name
-      });
+    // Check if email already registered
+    const [existing] = await pool.query('SELECT id FROM students WHERE email = ?', [email]);
+    if (existing.length > 0) {
+      return res.status(409).json({ error: 'An account with this email already exists. Please login instead.' });
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await connection.beginTransaction();
-
-    // Check if email already registered
-    const [existing] = await connection.query('SELECT id FROM students WHERE email = ?', [email]);
-    let studentId;
-
-    if (existing.length > 0) {
-      studentId = existing[0].id;
-      await connection.query(
-        `UPDATE students 
-         SET name = ?, password = ?, role = 'department_head', department = ?, is_verified = true, is_active = true 
-         WHERE id = ?`,
-        [name, hashedPassword, department_name, studentId]
-      );
-    } else {
-      // Create dept head account in students table
-      const [result] = await connection.query(
-        `INSERT INTO students (name, email, password, role, department, is_verified, is_active) 
-         VALUES (?, ?, ?, 'department_head', ?, true, true)`,
-        [name, email, hashedPassword, department_name]
-      );
-      studentId = result.insertId;
-    }
+    // Create dept head account in students table
+    const [result] = await pool.query(
+      `INSERT INTO students (name, email, password, role, department, is_verified, is_active) 
+       VALUES (?, ?, ?, 'department_head', ?, true, true)`,
+      [name, email, hashedPassword, department_name]
+    );
 
     // Link dept head to department
-    await connection.query(
+    await pool.query(
       `UPDATE departments SET head_id = ?, head_name = ?, head_email = ? WHERE name = ?`,
-      [studentId, name, email, department_name]
+      [result.insertId, name, email, department_name]
     );
 
     // Mark invitation as accepted
-    await connection.query(
+    await pool.query(
       `UPDATE department_invitations SET status = 'accepted' WHERE token = ?`,
       [token]
     );
-
-    await connection.commit();
 
     res.status(201).json({
       message: 'Account created successfully. You can now login.',
       department: department_name
     });
   } catch (error) {
-    await connection.rollback();
     console.error('Accept invitation error:', error);
     res.status(500).json({ error: 'Failed to set up account. Please try again.' });
-  } finally {
-    connection.release();
   }
 };
 
@@ -105,8 +81,8 @@ exports.validateInviteToken = async (req, res) => {
     if (!token) return res.status(400).json({ error: 'Token is required' });
 
     const [rows] = await pool.query(
-      `SELECT department_name, email, status FROM department_invitations 
-       WHERE token = ? AND expires_at > NOW()`,
+      `SELECT department_name, email FROM department_invitations 
+       WHERE token = ? AND status = 'pending' AND expires_at > NOW()`,
       [token]
     );
 
@@ -114,12 +90,7 @@ exports.validateInviteToken = async (req, res) => {
       return res.status(400).json({ error: 'Invalid or expired invitation token' });
     }
 
-    res.json({ 
-      department: rows[0].department_name, 
-      email: rows[0].email, 
-      valid: true,
-      alreadyAccepted: rows[0].status === 'accepted'
-    });
+    res.json({ department: rows[0].department_name, email: rows[0].email, valid: true });
   } catch (error) {
     console.error('Validate invite error:', error);
     res.status(500).json({ error: 'Failed to validate token' });

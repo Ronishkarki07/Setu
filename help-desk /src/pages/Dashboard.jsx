@@ -42,18 +42,15 @@ function TopNav() {
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <p className="text-sm font-bold text-[#0D1B3E]">{student.name || "Student"}</p>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Verified Student</p>
-          </div>
-          <div className="w-10 h-10 bg-[#0d1b3e] text-white rounded-full flex items-center justify-center text-sm font-bold border border-gray-200 overflow-hidden shadow-sm transition-transform hover:scale-105">
-            {student.profile_photo ? (
-              <img src={`${API.replace('/api', '')}/${student.profile_photo}`} alt="" className="w-full h-full object-cover" />
-            ) : (
-              initials
-            )}
-          </div>
+        <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-400">
+          🔔
+        </button>
+        <div className="w-10 h-10 bg-[#0d1b3e] text-white rounded-full flex items-center justify-center text-sm font-bold border border-gray-200 overflow-hidden shadow-sm transition-transform hover:scale-105">
+          {student.profile_photo ? (
+            <img src={`${API.replace('/api', '')}/${student.profile_photo}`} alt="" className="w-full h-full object-cover" />
+          ) : (
+            initials
+          )}
         </div>
       </div>
     </header>
