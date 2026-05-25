@@ -77,17 +77,7 @@ export default function DeptLogin() {
       </div>
 
       {/* Right panel — Login form */}
-      <div className="flex-1 flex items-center justify-center p-8 relative">
-        <button
-          onClick={() => navigate("/")}
-          className="absolute top-8 left-8 flex items-center gap-2 text-white/50 hover:text-white transition-colors text-sm font-semibold group z-50"
-        >
-          <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Back to Home
-        </button>
-
+      <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-8">
@@ -98,6 +88,16 @@ export default function DeptLogin() {
           </div>
 
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+            <button
+              onClick={() => navigate("/")}
+              className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all group mb-6"
+              title="Back to Home"
+            >
+              <svg className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </button>
+
             <div className="mb-2">
               <span className="inline-block text-[10px] font-black text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full uppercase tracking-widest">
                 Department Login
