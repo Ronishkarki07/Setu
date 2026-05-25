@@ -77,7 +77,17 @@ export default function DeptLogin() {
       </div>
 
       {/* Right panel — Login form */}
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className="flex-1 flex items-center justify-center p-8 relative">
+        <button
+          onClick={() => navigate("/")}
+          className="absolute top-8 left-8 flex items-center gap-2 text-white/50 hover:text-white transition-colors text-sm font-semibold group z-50"
+        >
+          <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Home
+        </button>
+
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-8">
