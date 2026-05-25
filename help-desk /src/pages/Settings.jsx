@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import TopNav from "../components/TopNav";
 
 const API = "http://localhost:3000/api";
 
@@ -43,40 +44,6 @@ function authHeaders() {
 
 /* Sidebar moved to src/components/Sidebar.jsx - using shared Sidebar */
 
-/* ---------------- TOP NAV ---------------- */
-function TopNav() {
-  const student = getStudent();
-  const initials = (student.name || "U")
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-
-  return (
-    <header className="flex justify-between px-8 h-16 bg-white bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-      <div className="flex gap-6 items-center">
-        <span className="text-[#0d1b3e] font-bold border-b-2 border-[#DC143C] h-full flex items-center pt-1">
-          Settings
-        </span>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-400">
-          🔔
-        </button>
-        <div className="w-10 h-10 bg-[#0d1b3e] text-white rounded-full flex items-center justify-center text-sm font-bold border border-gray-200 overflow-hidden shadow-sm transition-transform hover:scale-105">
-          {student.profile_photo ? (
-            <img src={`${API.replace('/api', '')}/${student.profile_photo}`} alt="" className="w-full h-full object-cover" />
-          ) : (
-            initials
-          )}
-        </div>
-      </div>
-    </header>
-  );
-}
-
 /* ---------------- SETTINGS PAGE ---------------- */
 export default function Settings() {
   const navigate = useNavigate();
@@ -91,6 +58,10 @@ export default function Settings() {
   const [passwordStrength, setPasswordStrength] = useState(null);
   const [profilePhotoFile, setProfilePhotoFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -245,8 +216,8 @@ export default function Settings() {
     <div className="h-screen bg-gray-50">
       <Sidebar />
 
-      <div className="ml-56 flex flex-col h-screen">
-        <TopNav />
+      <div className="ml-64 flex flex-col h-screen">
+        <TopNav title="Settings" />
 
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-2xl mx-auto p-8">
@@ -359,14 +330,23 @@ export default function Settings() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Current Password
                   </label>
-                  <input
-                    type="password"
-                    name="currentPassword"
-                    value={form.currentPassword}
-                    onChange={handleChange}
-                    placeholder="Enter your current password"
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-[#DC143C]"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showCurrentPassword ? "text" : "password"}
+                      name="currentPassword"
+                      value={form.currentPassword}
+                      onChange={handleChange}
+                      placeholder="Enter your current password"
+                      className="w-full px-4 py-2 pr-10 rounded-lg border border-gray-300 focus:outline-none focus:border-[#DC143C]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500 hover:text-[#DC143C] focus:outline-none"
+                    >
+                      {showCurrentPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
                 </div>
 
                 {/* New Password */}
@@ -374,14 +354,23 @@ export default function Settings() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     New Password
                   </label>
-                  <input
-                    type="password"
-                    name="newPassword"
-                    value={form.newPassword}
-                    onChange={handleChange}
-                    placeholder="Enter your new password"
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-[#DC143C]"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      name="newPassword"
+                      value={form.newPassword}
+                      onChange={handleChange}
+                      placeholder="Enter your new password"
+                      className="w-full px-4 py-2 pr-10 rounded-lg border border-gray-300 focus:outline-none focus:border-[#DC143C]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500 hover:text-[#DC143C] focus:outline-none"
+                    >
+                      {showNewPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
 
                   {/* Password Strength Indicator */}
                   {form.newPassword && passwordStrength && (
@@ -451,14 +440,23 @@ export default function Settings() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Confirm Password
                   </label>
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    value={form.confirmPassword}
-                    onChange={handleChange}
-                    placeholder="Confirm your new password"
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-[#DC143C]"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      name="confirmPassword"
+                      value={form.confirmPassword}
+                      onChange={handleChange}
+                      placeholder="Confirm your new password"
+                      className="w-full px-4 py-2 pr-10 rounded-lg border border-gray-300 focus:outline-none focus:border-[#DC143C]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500 hover:text-[#DC143C] focus:outline-none"
+                    >
+                      {showConfirmPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Submit Button */}

@@ -104,8 +104,7 @@ export default function DeptTicketDetail() {
               <input placeholder="Search ticket ID..." className="bg-gray-100 rounded-full px-4 py-1.5 text-xs outline-none w-40 pr-7"/>
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">🔍</span>
             </div>
-            <button className="relative w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400">🔔<span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white"/></button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400">❓</button>
+                        <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400">❓</button>
             <div className="w-8 h-8 bg-[#0d1b3e] text-white rounded-full flex items-center justify-center text-xs font-bold">
               {(head.name||"D").split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2)}
             </div>

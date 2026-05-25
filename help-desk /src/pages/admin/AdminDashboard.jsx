@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "../../assets/react.svg";
 import AdminSidebar from "../../components/AdminSidebar";
+import AdminTopNav from "../../components/admin/AdminTopNav";
 import ManualTicketModal from "../../components/admin/ManualTicketModal";
 
 const API = "http://localhost:3000/api";
@@ -9,7 +10,7 @@ const API = "http://localhost:3000/api";
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [tickets, setTickets] = useState([]);
-  const [faculties, setFaculties] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [stats, setStats] = useState({
@@ -26,17 +27,17 @@ export default function AdminDashboard() {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
-  const fetchFaculties = async () => {
+  const fetchDepartments = async () => {
     try {
-      const res = await fetch(`${API}/admin/faculties`, {
+      const res = await fetch(`${API}/admin/departments`, {
         headers: { "Authorization": `Bearer ${adminToken}` }
       });
       if (res.ok) {
         const data = await res.json();
-        setFaculties(data.faculties || []);
+        setDepartments(data || []);
       }
     } catch (err) {
-      console.error("Error fetching faculties:", err);
+      console.error("Error fetching departments:", err);
     }
   };
 
@@ -70,8 +71,16 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetchFaculties();
+    fetchDepartments();
     fetchTickets();
+    
+    // Set up polling for real-time updates
+    const interval = setInterval(() => {
+      fetchDepartments();
+      fetchTickets();
+    }, 5000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const displayedTickets = filter === "all" 
@@ -138,21 +147,9 @@ export default function AdminDashboard() {
       <AdminSidebar setShowManualModal={setShowManualModal} />
 
       <main className="ml-64 flex-1 flex flex-col min-h-screen">
-        <header className="h-16 bg-white border-b border-gray-200 px-8 flex items-center justify-between sticky top-0 z-40">
-          <h1 className="text-sm font-black text-[#0D1B3E] uppercase tracking-widest">Setu Central Intelligence</h1>
-          <div className="flex items-center gap-4">
-            <button className="text-gray-400 hover:text-[#0D1B3E]">🔔</button>
-            <div className="flex items-center gap-3 ml-4">
-              <div className="text-right">
-                <p className="text-sm font-bold text-[#0D1B3E]">{adminData.name || "Admin"}</p>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Global Oversight</p>
-              </div>
-              <div className="w-10 h-10 bg-[#0D1B3E] text-white rounded-full flex items-center justify-center text-sm font-bold border border-gray-200 shadow-sm transition-transform hover:scale-105">
-                {(adminData.name || "A").split(" ").map(w => w[0]).join("").slice(0, 2)}
-              </div>
-            </div>
-          </div>
-        </header>
+        <AdminTopNav>
+          <h1 className="text-sm font-black text-[#0D1B3E] uppercase tracking-widest">Setu Admin Portal</h1>
+        </AdminTopNav>
 
         <div className="p-8 space-y-8">
           <div className="grid grid-cols-4 gap-6">
@@ -263,17 +260,10 @@ export default function AdminDashboard() {
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <h3 className="font-bold text-gray-800 mb-6">System Summary</h3>
               <div className="space-y-4">
-                <SummaryItem icon="🏢" label="Total Departments" value={faculties.length} />
+                <SummaryItem icon="🏢" label="Total Departments" value={departments.length} />
                 <SummaryItem icon="🎟️" label="Open Tickets" value={stats.open} />
                 <SummaryItem icon="✅" label="Resolved Tickets" value={stats.resolved} />
                 <SummaryItem icon="⚙️" label="In Progress" value={stats.in_progress} />
-              </div>
-              <div className="mt-8 pt-6 border-t border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Quick Actions</p>
-                <div className="space-y-2">
-                  <button className="w-full text-left p-3 rounded-xl bg-gray-50 text-xs font-bold text-gray-600 hover:bg-gray-100 transition">📁 Manage Categories</button>
-                  <button className="w-full text-left p-3 rounded-xl bg-gray-50 text-xs font-bold text-gray-600 hover:bg-gray-100 transition">⚙️ Portal Settings</button>
-                </div>
               </div>
             </div>
           </div>

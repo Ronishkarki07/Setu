@@ -3,13 +3,6 @@ const bcrypt = require('bcryptjs');
 const pool = require('../config/database');
 require('dotenv').config();
 
-/*
- * ============================================================
- *  HARD-CODED ADMIN CREDENTIALS
- *  These can ONLY be changed by editing this file directly.
- *  There is NO registration endpoint — only this account exists.
- * ============================================================
- */
 const ADMIN_ID = 'admin_001';
 const ADMIN_EMAIL = 'admin@bicnepal.edu.np';
 const ADMIN_PASSWORD = 'Admin@Setu2026';
@@ -228,7 +221,7 @@ exports.verifySession = async (req, res) => {
     });
   } catch (error) {
     console.error('Admin verify session error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 

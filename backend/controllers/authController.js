@@ -79,7 +79,9 @@ exports.signup = async (req, res) => {
     }
 
     // Validate level
-    const validLevel = await Level.getByName(level);
+    // The frontend sends format like "Level 4 - First Semester", but DB stores "Level 4"
+    const baseLevel = level.split(' - ')[0];
+    const validLevel = await Level.getByName(baseLevel);
     if (!validLevel) {
       return res.status(400).json({ error: 'Invalid level. Please select a valid level.' });
     }
@@ -349,7 +351,7 @@ exports.changePassword = async (req, res) => {
     }
 
     // Get current student
-    const student = await Student.findById(studentId);
+    const student = await Student.findByIdWithPassword(studentId);
     if (!student) {
       return res.status(404).json({ error: 'Student not found' });
     }

@@ -41,6 +41,17 @@ class Student {
     }
   }
 
+  // Find student by ID with password (for authentication/password changes)
+  static async findByIdWithPassword(id) {
+    try {
+      const query = 'SELECT * FROM students WHERE id = ?';
+      const [rows] = await pool.query(query, [id]);
+      return rows[0] || null;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Validate password
   static async validatePassword(plainPassword, hashedPassword) {
     try {

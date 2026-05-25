@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
+import TopNav from "../components/TopNav";
 
 const API = "http://localhost:3000/api";
 
@@ -24,38 +25,6 @@ function authHeaders() {
 }
 
 /* sidebar removed - using shared component (src/components/Sidebar.jsx) */
-
-/* ---------------- TOP NAV ---------------- */
-function TopNav() {
-  const student = getStudent();
-  const initials = (student.name || "U")
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-
-  return (
-    <header className="flex justify-between items-center px-8 h-16 bg-white bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-      <div className="font-bold text-lg text-gray-800">
-        Student Helpdesk Portal
-      </div>
-
-      <div className="flex items-center gap-4">
-        <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-400">
-          🔔
-        </button>
-        <div className="w-10 h-10 bg-[#0d1b3e] text-white rounded-full flex items-center justify-center text-sm font-bold border border-gray-200 overflow-hidden shadow-sm transition-transform hover:scale-105">
-          {student.profile_photo ? (
-            <img src={`${API.replace('/api', '')}/${student.profile_photo}`} alt="" className="w-full h-full object-cover" />
-          ) : (
-            initials
-          )}
-        </div>
-      </div>
-    </header>
-  );
-}
 
 /* ---------------- MAIN DASHBOARD ---------------- */
 export default function Dashboard() {
@@ -109,8 +78,8 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50 text-gray-800">
       <Sidebar />
 
-      <main className="ml-56 flex flex-col min-h-screen">
-        <TopNav />
+      <main className="ml-64 flex flex-col min-h-screen">
+        <TopNav title="Student Helpdesk Portal" />
 
         <div className="flex-1 flex overflow-hidden">
           {/* MAIN CONTENT */}

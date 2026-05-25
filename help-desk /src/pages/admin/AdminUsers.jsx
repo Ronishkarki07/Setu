@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";
+import AdminTopNav from "../../components/admin/AdminTopNav";
 import ManualTicketModal from "../../components/admin/ManualTicketModal";
 
 const API = "http://localhost:3000/api";
@@ -33,6 +34,7 @@ export default function AdminUsers() {
   };
 
   const filteredUsers = users.filter(u => {
+    if (u.role === 'department_head') return false;
     const matchesSearch = u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
     const matchesFilter = filter === "all" || u.role === filter;
     return matchesSearch && matchesFilter;
@@ -43,31 +45,22 @@ export default function AdminUsers() {
       <AdminSidebar setShowManualModal={setShowManualModal} />
       
       <main className="ml-64 flex-1 flex flex-col min-h-screen">
-        <header className="h-16 bg-white border-b border-gray-200 px-8 flex items-center justify-between sticky top-0 z-40">
-          <div className="flex items-center gap-8">
-            <h1 className="text-sm font-black text-[#0D1B3E] uppercase tracking-widest">Academic Curator Helpdesk</h1>
-            <nav className="hidden md:flex gap-6 text-[10px] font-black text-gray-300 uppercase tracking-widest">
-                <span className="text-[#0D1B3E] border-b-2 border-[#0D1B3E] pb-1 cursor-pointer">Overview</span>
-                <span className="hover:text-[#0D1B3E] transition-colors cursor-pointer">Directory</span>
-                <span className="hover:text-[#0D1B3E] transition-colors cursor-pointer">Permissions</span>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="relative mr-4 hidden lg:block">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-                <input 
-                    type="text" 
-                    placeholder="Global search..." 
-                    className="pl-10 pr-4 py-2 bg-gray-50 border-none rounded-xl text-xs outline-none focus:ring-1 focus:ring-blue-500 w-64"
-                />
-            </div>
-            <button className="text-gray-400 hover:text-[#0D1B3E]">🔔</button>
-            <button className="text-gray-400 hover:text-[#0D1B3E]">❓</button>
-            <div className="w-10 h-10 bg-[#0D1B3E] text-white rounded-full flex items-center justify-center text-sm font-bold border border-gray-200 overflow-hidden shadow-sm ml-2">
-                {(adminData.name || "A").split(" ").map(w => w[0]).join("").slice(0, 2)}
-            </div>
-          </div>
-        </header>
+        <AdminTopNav
+          rightContent={
+            <>
+              <div className="relative mr-4 hidden lg:block">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+                  <input 
+                      type="text" 
+                      placeholder="Global search..." 
+                      className="pl-10 pr-4 py-2 bg-gray-50 border-none rounded-xl text-xs outline-none focus:ring-1 focus:ring-blue-500 w-64"
+                  />
+              </div>
+            </>
+          }
+        >
+          <h1 className="text-sm font-black text-[#0D1B3E] uppercase tracking-widest">Setu Admin Portal</h1>
+        </AdminTopNav>
 
         <div className="p-12 max-w-7xl mx-auto w-full">
           <div className="flex justify-between items-start mb-12">
@@ -77,7 +70,6 @@ export default function AdminUsers() {
             </div>
             <div className="flex gap-3">
                 <button className="px-6 py-3 border border-gray-200 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:bg-gray-50 flex items-center gap-2">📥 Export Directory</button>
-                <button className="px-6 py-3 bg-[#0D1B3E] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black flex items-center gap-2 shadow-xl shadow-blue-900/20 transition-all">+ Add New User</button>
             </div>
           </div>
 
@@ -107,7 +99,7 @@ export default function AdminUsers() {
             <div className="flex bg-gray-50 p-1 rounded-2xl border border-gray-100">
                 <FilterTab label="All Users" active={filter === "all"} onClick={() => setFilter("all")} />
                 <FilterTab label="Students" active={filter === "student"} onClick={() => setFilter("student")} />
-                <FilterTab label="Department" active={filter === "staff"} onClick={() => setFilter("staff")} />
+                <FilterTab label="Staff" active={filter === "staff"} onClick={() => setFilter("staff")} />
                 <FilterTab label="Admins" active={filter === "admin"} onClick={() => setFilter("admin")} />
             </div>
           </div>

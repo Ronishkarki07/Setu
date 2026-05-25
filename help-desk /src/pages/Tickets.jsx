@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
+import TopNav from "../components/TopNav";
 import { useLocation } from "react-router-dom";
 
 const API = "http://localhost:3000/api";
@@ -175,34 +176,6 @@ function EditTicketModal({ ticket, onClose, onSaved }) {
   );
 }
 
-// ─── TOP NAV ─────────────────────────────────────────────────────────────────
-function TopNav() {
-  const student = getStudent();
-  const initials = (student.name || "U")
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-
-  return (
-    <header className="flex justify-between items-center px-8 h-16 bg-white bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-      <div className="font-bold text-lg text-gray-800">Student Helpdesk Portal</div>
-
-      <div className="flex items-center gap-4">
-        <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-400">🔔</button>
-        <div className="w-10 h-10 bg-[#0d1b3e] text-white rounded-full flex items-center justify-center text-sm font-bold border border-gray-200 overflow-hidden shadow-sm transition-transform hover:scale-105">
-          {student.profile_photo ? (
-            <img src={`${API.replace('/api', '')}/${student.profile_photo}`} alt="" className="w-full h-full object-cover" />
-          ) : (
-            initials
-          )}
-        </div>
-      </div>
-    </header>
-  );
-}
-
 // ─── MY TICKETS ───────────────────────────────────────────────────────────────
 function MyTickets() {
   const [filter, setFilter] = useState("All Tickets");
@@ -270,26 +243,46 @@ function MyTickets() {
         />
       )}
 
-      <h1 className="text-5xl font-serif font-bold text-[#0d2740] mb-3">My Tickets</h1>
-      <p className="text-base text-gray-600 leading-relaxed mb-8 max-w-3xl">
-        Track and manage your academic support requests. Our curators are here to ensure your educational journey remains fluid.
-      </p>
+      {/* WELCOME HERO SECTION */}
+      <div className="bg-gradient-to-br from-[#0d2740] to-[#1a365d] rounded-2xl p-8 mb-8 text-white relative overflow-hidden shadow-sm">
+        <div className="absolute top-0 right-0 opacity-10 w-96 h-96 bg-white rounded-full -mr-48 -mt-24"></div>
+        <div className="relative z-10">
+          <p className="text-sm font-bold tracking-wide mb-2 bg-white/20 w-fit px-3 py-1 rounded">
+            MY TICKETS
+          </p>
+          <h1 className="text-4xl font-serif font-bold mb-2">Service Requests</h1>
+          <p className="text-white/80 max-w-3xl">
+            Track and manage your academic support requests. Our curators are here to ensure your educational journey remains fluid.
+          </p>
+        </div>
+      </div>
 
       {/* Stats */}
-      <div className="flex gap-4 mb-8">
-        {[
-          { icon: "📋", bg: "bg-blue-100", value: String(activeCount).padStart(2, "0"), label: "ACTIVE TICKETS", val: "text-[#0d1b3e]" },
-          { icon: "✔", bg: "bg-green-100", value: String(stats.resolved_count).padStart(2, "0"), label: "RESOLVED", val: "text-[#0d1b3e]" },
-          { icon: "!", bg: "bg-red-100", value: String(stats.open_count).padStart(2, "0"), label: "REQUIRES ACTION", val: "text-[#DC143C]" },
-        ].map((st) => (
-          <div key={st.label} className="flex-1 bg-white rounded-2xl px-6 py-6 flex items-center gap-4 shadow-sm">
-            <div className={`w-12 h-12 rounded-xl ${st.bg} flex items-center justify-center text-lg flex-shrink-0`}>{st.icon}</div>
-            <div>
-              <p className={`text-3xl font-bold ${st.val}`}>{st.value}</p>
-              <p className="text-[11px] text-gray-400 tracking-widest">{st.label}</p>
-            </div>
+      <div className="grid grid-cols-3 gap-6 mb-8">
+        <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-gray-400 font-semibold mb-2">ACTIVE</p>
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">📋</div>
           </div>
-        ))}
+          <p className="text-4xl font-bold text-gray-800 mb-2">{String(activeCount).padStart(2, "0")}</p>
+          <p className="text-xs text-gray-500">TICKETS IN PROGRESS</p>
+        </div>
+        <div className="bg-[#8B0000] rounded-2xl p-6 shadow-sm hover:shadow-md transition text-white">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-white/70 font-semibold mb-2">URGENT</p>
+            <div className="w-8 h-8 rounded-lg bg-white/10 text-white flex items-center justify-center font-bold">!</div>
+          </div>
+          <p className="text-4xl font-bold mb-2">{String(stats.open_count).padStart(2, "0")}</p>
+          <p className="text-xs text-white/60">REQUIRES ACTION</p>
+        </div>
+        <div className="bg-green-600 rounded-2xl p-6 shadow-sm hover:shadow-md transition text-white">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-white/70 font-semibold mb-2">COMPLETED</p>
+            <div className="w-8 h-8 rounded-lg bg-white/10 text-white flex items-center justify-center">✔</div>
+          </div>
+          <p className="text-4xl font-bold mb-2">{String(stats.resolved_count).padStart(2, "0")}</p>
+          <p className="text-xs text-white/60">RESOLVED TICKETS</p>
+        </div>
       </div>
 
       {/* Filter Tabs */}
@@ -661,8 +654,8 @@ export default function Tickets() {
   return (
     <div className="min-h-screen bg-white text-gray-800">
       <Sidebar onNewTicket={() => setPage("submit")} />
-      <main className="ml-56 flex flex-col min-h-screen">
-        <TopNav page={page} setPage={setPage} />
+      <main className="ml-64 flex flex-col min-h-screen">
+        <TopNav title={page === "tickets" ? "My Tickets" : "New Ticket"} />
         {page === "tickets" && <MyTickets setPage={setPage} />}
         {page === "submit" && <SubmitTicket onSubmitted={handleSubmitted} />}
       </main>

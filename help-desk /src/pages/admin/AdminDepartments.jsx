@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";
+import AdminTopNav from "../../components/admin/AdminTopNav";
 import ManualTicketModal from "../../components/admin/ManualTicketModal";
 
 const API = "http://localhost:3000/api";
@@ -13,6 +14,7 @@ export default function AdminDepartments() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showManualModal, setShowManualModal] = useState(false);
+  const [isInviting, setIsInviting] = useState(false);
   const [selectedDept, setSelectedDept] = useState(null);
   const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
 
@@ -20,6 +22,7 @@ export default function AdminDepartments() {
   const [deptDesc, setDeptDesc] = useState("");
   const [headName, setHeadName] = useState("");
   const [headEmail, setHeadEmail] = useState("");
+  const [headPassword, setHeadPassword] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
 
   useEffect(() => {
@@ -42,21 +45,43 @@ export default function AdminDepartments() {
 
   const handleCreateDept = async () => {
     try {
+      if (inviteEmail && !headPassword.trim()) {
+        alert("Please set a password for the department head before creating the invite.");
+        return;
+      }
       const res = await fetch(`${API}/admin/departments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("adminToken")}`
         },
-        body: JSON.stringify({ name: deptName, description: deptDesc, head_name: headName, head_email: headEmail })
+        // Also send inviteEmail to automatically trigger an invitation upon department creation if needed
+        body: JSON.stringify({ name: deptName, description: deptDesc, head_name: headName, head_email: inviteEmail || headEmail })
       });
       if (res.ok) {
+        const data = await res.json();
+        
+        // If an invite Email is provided, directly invoke the invite endpoint right after unit creation
+        if (inviteEmail) {
+          await fetch(`${API}/admin/departments/invite`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("adminToken")}`
+            },
+            body: JSON.stringify({ departmentId: data.id, email: inviteEmail, password: headPassword, head_name: headName })
+          });
+          alert("Department created and invitation sent successfully!");
+        }
+
         fetchDepartments();
         setShowAddModal(false);
         setDeptName("");
         setDeptDesc("");
         setHeadName("");
         setHeadEmail("");
+        setHeadPassword("");
+        setInviteEmail("");
       }
     } catch (err) {
       console.error(err);
@@ -107,21 +132,33 @@ export default function AdminDepartments() {
 
   const handleInviteHead = async () => {
     try {
+      setIsInviting(true);
+      if (!inviteEmail.trim()) {
+        alert("Department email is required.");
+        return;
+      }
       const res = await fetch(`${API}/admin/departments/invite`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("adminToken")}`
         },
-        body: JSON.stringify({ email: inviteEmail, departmentId: selectedDept.id })
+        body: JSON.stringify({ email: inviteEmail, departmentId: selectedDept.id, password: headPassword, head_name: selectedDept?.head_name || selectedDept?.name })
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setShowInviteModal(false);
         setInviteEmail("");
+        setHeadPassword("");
         alert("Invitation sent successfully!");
+      } else {
+        alert(data.error || "Failed to send invitation. Please check the network or server logs.");
       }
     } catch (err) {
       console.error(err);
+      alert("A network error occurred while sending the invitation.");
+    } finally {
+      setIsInviting(false);
     }
   };
 
@@ -130,22 +167,9 @@ export default function AdminDepartments() {
       <AdminSidebar setShowManualModal={setShowManualModal} />
       
       <main className="ml-64 flex-1 flex flex-col min-h-screen">
-        <header className="h-16 bg-white border-b border-gray-200 px-8 flex items-center justify-between sticky top-0 z-40">
-          <h1 className="text-sm font-black text-[#0D1B3E] uppercase tracking-widest">Academic Curator Helpdesk</h1>
-          <div className="flex items-center gap-4">
-            <button className="text-gray-400 hover:text-[#0D1B3E]">🔔</button>
-            <button className="text-gray-400 hover:text-[#0D1B3E]">❓</button>
-            <div className="flex items-center gap-3 ml-4">
-              <div className="text-right">
-                <p className="text-sm font-bold text-[#0D1B3E]">{adminData.name || "Admin"}</p>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Global Controller</p>
-              </div>
-              <div className="w-10 h-10 bg-[#0D1B3E] text-white rounded-full flex items-center justify-center text-sm font-bold border border-gray-200 overflow-hidden shadow-sm transition-transform hover:scale-105">
-                {(adminData.name || "A").split(" ").map(w => w[0]).join("").slice(0, 2)}
-              </div>
-            </div>
-          </div>
-        </header>
+        <AdminTopNav>
+          <h1 className="text-sm font-black text-[#0D1B3E] uppercase tracking-widest">Setu Admin Portal</h1>
+        </AdminTopNav>
 
         <div className="p-12 max-w-7xl mx-auto w-full">
           <div className="flex justify-between items-start mb-12">
@@ -155,7 +179,7 @@ export default function AdminDepartments() {
               <p className="text-gray-400 font-medium max-w-2xl">Orchestrate the institutional response ecosystem by managing specialized service units and their personnel allocation.</p>
             </div>
             <button 
-              onClick={() => { setDeptName(""); setDeptDesc(""); setShowAddModal(true); }}
+              onClick={() => { setDeptName(""); setDeptDesc(""); setHeadName(""); setHeadEmail(""); setHeadPassword(""); setInviteEmail(""); setShowAddModal(true); }}
               className="bg-[#22C55E] text-[#0D1B3E] px-8 py-3.5 rounded-xl font-black text-xs hover:bg-[#16A34A] transition shadow-xl shadow-green-500/20 flex items-center gap-3 uppercase tracking-widest"
             >
               <span>🏢</span> Add Department
@@ -215,7 +239,7 @@ export default function AdminDepartments() {
                         <td className="px-8 py-6 text-right">
                             <div className="flex justify-end gap-3 transition-opacity">
                                 <button 
-                                    onClick={() => { setSelectedDept(d); setInviteEmail(""); setShowInviteModal(true); }}
+                                  onClick={() => { setSelectedDept(d); setInviteEmail(""); setHeadPassword(""); setShowInviteModal(true); }}
                                     className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-100 transition-colors"
                                     title="Invite Head"
                                 >
@@ -266,6 +290,35 @@ export default function AdminDepartments() {
                   value={deptName}
                   onChange={(e) => setDeptName(e.target.value)}
                   placeholder="e.g. IT Support, Admissions"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">HEAD OF DEPARTMENT NAME</label>
+                <input 
+                  className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-none outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 font-medium" 
+                  value={headName}
+                  onChange={(e) => setHeadName(e.target.value)}
+                  placeholder="e.g. Subodh Shrestha"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">HEAD OF DEPARTMENT EMAIL</label>
+                <input 
+                  type="email"
+                  className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-none outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 font-medium" 
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="name@institution.edu"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">PASSWORD</label>
+                <input 
+                  type="password"
+                  className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-none outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 font-medium" 
+                  value={headPassword}
+                  onChange={(e) => setHeadPassword(e.target.value)}
+                  placeholder="Create a login password"
                 />
               </div>
               <div>
@@ -358,9 +411,21 @@ export default function AdminDepartments() {
                 placeholder="e.g. name@bicnepal.edu.np"
               />
             </div>
+            <div className="mt-6">
+              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">PASSWORD</label>
+              <input 
+                type="password"
+                className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-none outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 font-medium" 
+                value={headPassword}
+                onChange={(e) => setHeadPassword(e.target.value)}
+                placeholder="Create a login password"
+              />
+            </div>
             <div className="flex gap-4 mt-10">
-              <button onClick={() => setShowInviteModal(false)} className="flex-1 py-4 text-xs font-black text-gray-400 hover:bg-gray-50 rounded-2xl uppercase tracking-widest transition-all">Cancel</button>
-              <button onClick={handleInviteHead} className="flex-1 py-4 text-xs font-black bg-[#0D1B3E] text-white rounded-2xl hover:bg-black uppercase tracking-widest transition-all">Send Invite</button>
+              <button onClick={() => setShowInviteModal(false)} disabled={isInviting} className="flex-1 py-4 text-xs font-black text-gray-400 hover:bg-gray-50 rounded-2xl uppercase tracking-widest transition-all">Cancel</button>
+              <button onClick={handleInviteHead} disabled={isInviting} className="flex-1 py-4 text-xs font-black bg-[#0D1B3E] text-white rounded-2xl hover:bg-black uppercase tracking-widest transition-all disabled:opacity-50">
+                {isInviting ? "Sending..." : "Send Invite"}
+              </button>
             </div>
           </div>
         </div>

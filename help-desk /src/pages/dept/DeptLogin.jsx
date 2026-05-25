@@ -8,6 +8,7 @@ export default function DeptLogin() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,7 +90,7 @@ export default function DeptLogin() {
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
             <div className="mb-2">
               <span className="inline-block text-[10px] font-black text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full uppercase tracking-widest">
-                Invitation Only
+                Department Login
               </span>
             </div>
             <h1 className="text-2xl font-black text-white mt-3 mb-1">Sign In</h1>
@@ -115,14 +116,23 @@ export default function DeptLogin() {
               </div>
               <div>
                 <label className="block text-[10px] font-black text-white/40 uppercase tracking-widest mb-2">Password</label>
-                <input
-                  id="dept-login-password"
-                  type="password"
-                  value={form.password}
-                  onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                  placeholder="••••••••"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-white/25 text-sm font-medium outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                />
+                <div className="relative">
+                  <input
+                    id="dept-login-password"
+                    type={showPassword ? "text" : "password"}
+                    value={form.password}
+                    onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                    placeholder="••••••••"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 pr-14 text-white placeholder-white/25 text-sm font-medium outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-white/40 hover:text-white transition-colors focus:outline-none"
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
               </div>
 
               <button
@@ -133,7 +143,7 @@ export default function DeptLogin() {
               >
                 {loading ? (
                   <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Authenticating...</>
-                ) : "Sign In to Department Portal →"}
+                ) : "Sign In"}
               </button>
             </form>
 

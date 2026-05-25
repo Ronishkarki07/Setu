@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
+import TopNav from "../components/TopNav";
 
 const API = "http://localhost:3000/api";
 
@@ -34,20 +35,7 @@ export default function Announcements() {
       <Sidebar />
       
       <main className="ml-64 flex-1 flex flex-col min-h-screen">
-        <header className="h-16 bg-white border-b border-gray-100 px-8 flex items-center justify-between sticky top-0 z-40">
-          <h1 className="text-sm font-black text-[#0D1B3E] uppercase tracking-widest">Institutional Broadcasts</h1>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <p className="text-sm font-bold text-[#0D1B3E]">{student.name || "Student"}</p>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Verified Student</p>
-              </div>
-              <div className="w-10 h-10 bg-[#0D1B3E] text-white rounded-full flex items-center justify-center font-bold">
-                {(student.name || "S")[0]}
-              </div>
-            </div>
-          </div>
-        </header>
+        <TopNav title="Announcements" />
 
         <div className="p-12 max-w-5xl mx-auto w-full">
           <div className="mb-12">

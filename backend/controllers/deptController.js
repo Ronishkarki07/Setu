@@ -33,26 +33,37 @@ exports.acceptInvitation = async (req, res) => {
     const invitation = invitations[0];
     const { email, department_name } = invitation;
 
-    // Check if email already registered
-    const [existing] = await pool.query('SELECT id FROM students WHERE email = ?', [email]);
-    if (existing.length > 0) {
-      return res.status(409).json({ error: 'An account with this email already exists. Please login instead.' });
-    }
-
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create dept head account in students table
-    const [result] = await pool.query(
-      `INSERT INTO students (name, email, password, role, department, is_verified, is_active) 
-       VALUES (?, ?, ?, 'department_head', ?, true, true)`,
-      [name, email, hashedPassword, department_name]
-    );
+    // Check if email already registered
+    const [existing] = await pool.query('SELECT id, role FROM students WHERE email = ?', [email]);
+    let studentId;
+
+    if (existing.length > 0) {
+      if (existing[0].role !== 'department_head') {
+        return res.status(409).json({ error: 'An account with this email already exists. Please login instead.' });
+      }
+
+      await pool.query(
+        `UPDATE students SET name = ?, password = ?, department = ?, is_verified = true, is_active = true WHERE email = ?`,
+        [name, hashedPassword, department_name, email]
+      );
+      studentId = existing[0].id;
+    } else {
+      // Create dept head account in students table
+      const [result] = await pool.query(
+        `INSERT INTO students (name, email, password, role, department, is_verified, is_active) 
+         VALUES (?, ?, ?, 'department_head', ?, true, true)`,
+        [name, email, hashedPassword, department_name]
+      );
+      studentId = result.insertId;
+    }
 
     // Link dept head to department
     await pool.query(
       `UPDATE departments SET head_id = ?, head_name = ?, head_email = ? WHERE name = ?`,
-      [result.insertId, name, email, department_name]
+      [studentId, name, email, department_name]
     );
 
     // Mark invitation as accepted
